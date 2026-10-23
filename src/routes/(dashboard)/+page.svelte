@@ -122,8 +122,9 @@
 		</div>
 		<div class="flex flex-wrap items-center gap-2">
 			<Button.Root
+				variant="outline"
 				size="sm"
-				class="h-9 gap-1.5 rounded-lg border-border/80 text-xs font-medium"
+				class="h-9 gap-1.5 rounded-lg border border-border/80 bg-white dark:bg-card text-foreground hover:bg-slate-50 dark:hover:bg-muted text-xs font-semibold shadow-xs transition-colors"
 			>
 				<DownloadIcon class="size-3.5" />
 				<span>{t("overview.exportReport")}</span>
@@ -211,13 +212,13 @@
 				>
 					<button
 						onclick={() => (selectedRange = "7d")}
-						class={`rounded-md px-2.5 py-1 transition-all ${selectedRange === "7d" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}
+						class={`rounded-md px-2.5 py-1 transition-all ${selectedRange === "7d" ? "bg-white dark:bg-card text-foreground font-semibold shadow-xs" : "text-muted-foreground hover:text-foreground"}`}
 					>
 						7D
 					</button>
 					<button
 						onclick={() => (selectedRange = "30d")}
-						class={`rounded-md px-2.5 py-1 transition-all ${selectedRange === "30d" ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}
+						class={`rounded-md px-2.5 py-1 transition-all ${selectedRange === "30d" ? "bg-white dark:bg-card text-foreground font-semibold shadow-xs" : "text-muted-foreground hover:text-foreground"}`}
 					>
 						30D
 					</button>
@@ -297,11 +298,11 @@
 				</p>
 			</div>
 			<Button.Root
-				variant="ghost"
+				variant="outline"
 				size="sm"
-				class="h-8 gap-1 text-xs text-muted-foreground hover:text-foreground"
+				class="h-8 gap-1.5 rounded-lg border border-border/80 bg-white dark:bg-card px-2.5 text-xs font-medium text-foreground hover:bg-slate-50 dark:hover:bg-muted shadow-xs transition-colors"
 			>
-				<FilterIcon class="size-3.5" />
+				<FilterIcon class="size-3.5 text-muted-foreground" />
 				<span>{t("common.viewAll")}</span>
 			</Button.Root>
 		</div>

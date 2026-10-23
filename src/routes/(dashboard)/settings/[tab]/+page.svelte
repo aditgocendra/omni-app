@@ -95,7 +95,7 @@
 						class={`relative flex items-center justify-between p-4 rounded-xl border text-start transition-all cursor-pointer ${
 							i18n.locale === "en"
 								? "border-primary bg-primary/5 text-foreground ring-1 ring-primary"
-								: "border-border/80 bg-card/60 hover:border-border hover:bg-muted/40 text-muted-foreground"
+								: "border-border/80 bg-white dark:bg-card hover:border-border hover:bg-slate-50 dark:hover:bg-muted/40 text-muted-foreground shadow-xs"
 						}`}
 					>
 						<div class="flex items-center gap-3">
@@ -116,7 +116,7 @@
 						class={`relative flex items-center justify-between p-4 rounded-xl border text-start transition-all cursor-pointer ${
 							i18n.locale === "id"
 								? "border-primary bg-primary/5 text-foreground ring-1 ring-primary"
-								: "border-border/80 bg-card/60 hover:border-border hover:bg-muted/40 text-muted-foreground"
+								: "border-border/80 bg-white dark:bg-card hover:border-border hover:bg-slate-50 dark:hover:bg-muted/40 text-muted-foreground shadow-xs"
 						}`}
 					>
 						<div class="flex items-center gap-3">
@@ -156,7 +156,7 @@
 						class={`flex flex-col items-start p-4 rounded-xl border text-start transition-all cursor-pointer ${
 							userPrefersMode.current === "light"
 								? "border-primary bg-primary/5 ring-1 ring-primary text-foreground"
-								: "border-border/80 bg-card/60 hover:bg-muted/40 text-muted-foreground"
+								: "border-border/80 bg-white dark:bg-card hover:bg-slate-50 dark:hover:bg-muted/40 text-muted-foreground shadow-xs"
 						}`}
 					>
 						<div class="flex items-center justify-between w-full mb-2">
@@ -175,7 +175,7 @@
 						class={`flex flex-col items-start p-4 rounded-xl border text-start transition-all cursor-pointer ${
 							userPrefersMode.current === "dark"
 								? "border-primary bg-primary/5 ring-1 ring-primary text-foreground"
-								: "border-border/80 bg-card/60 hover:bg-muted/40 text-muted-foreground"
+								: "border-border/80 bg-white dark:bg-card hover:bg-slate-50 dark:hover:bg-muted/40 text-muted-foreground shadow-xs"
 						}`}
 					>
 						<div class="flex items-center justify-between w-full mb-2">
@@ -194,7 +194,7 @@
 						class={`flex flex-col items-start p-4 rounded-xl border text-start transition-all cursor-pointer ${
 							userPrefersMode.current === "system"
 								? "border-primary bg-primary/5 ring-1 ring-primary text-foreground"
-								: "border-border/80 bg-card/60 hover:bg-muted/40 text-muted-foreground"
+								: "border-border/80 bg-white dark:bg-card hover:bg-slate-50 dark:hover:bg-muted/40 text-muted-foreground shadow-xs"
 						}`}
 					>
 						<div class="flex items-center justify-between w-full mb-2">
@@ -262,15 +262,15 @@
 				</div>
 
 				<div class="space-y-3 pt-2 max-w-xl">
-					<label class="flex items-center justify-between p-3.5 rounded-xl border border-border/70 hover:bg-muted/40 cursor-pointer">
+					<label class="flex items-center justify-between p-3.5 rounded-xl border border-border/70 bg-white dark:bg-card hover:bg-slate-50 dark:hover:bg-muted/40 shadow-xs cursor-pointer transition-colors">
 						<span class="text-xs font-medium text-foreground">{t("settings.emailAlerts")}</span>
 						<input type="checkbox" bind:checked={notifyEmail} class="size-4 rounded-sm text-primary focus:ring-primary" />
 					</label>
-					<label class="flex items-center justify-between p-3.5 rounded-xl border border-border/70 hover:bg-muted/40 cursor-pointer">
+					<label class="flex items-center justify-between p-3.5 rounded-xl border border-border/70 bg-white dark:bg-card hover:bg-slate-50 dark:hover:bg-muted/40 shadow-xs cursor-pointer transition-colors">
 						<span class="text-xs font-medium text-foreground">{t("settings.soundAlerts")}</span>
 						<input type="checkbox" bind:checked={notifySound} class="size-4 rounded-sm text-primary focus:ring-primary" />
 					</label>
-					<label class="flex items-center justify-between p-3.5 rounded-xl border border-border/70 hover:bg-muted/40 cursor-pointer">
+					<label class="flex items-center justify-between p-3.5 rounded-xl border border-border/70 bg-white dark:bg-card hover:bg-slate-50 dark:hover:bg-muted/40 shadow-xs cursor-pointer transition-colors">
 						<span class="text-xs font-medium text-foreground">{t("settings.desktopAlerts")}</span>
 						<input type="checkbox" bind:checked={notifyDesktop} class="size-4 rounded-sm text-primary focus:ring-primary" />
 					</label>
