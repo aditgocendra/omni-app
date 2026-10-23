@@ -405,7 +405,7 @@
 							<Button.Root
 								variant="ghost"
 								size="icon-sm"
-								class="size-8 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+								class="size-8 rounded-md border border-border/70 bg-white dark:bg-card hover:bg-slate-50 dark:hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer shadow-xs transition-colors"
 								{...props}
 								aria-label="More actions"
 							>
@@ -415,7 +415,7 @@
 					</DropdownMenu.Trigger>
 					<DropdownMenu.Content
 						align="end"
-						class="w-40 rounded-lg shadow-md border border-border/80 bg-card p-1"
+						class="w-40 rounded-lg shadow-md border border-border/80 bg-white dark:bg-card p-1"
 					>
 						<!-- Detail -->
 						<DropdownMenu.Item
@@ -561,7 +561,7 @@
 					variant="outline"
 					size="sm"
 					onclick={() => (isCreateModalOpen = false)}
-					class="text-xs cursor-pointer"
+					class="text-xs cursor-pointer bg-white dark:bg-card hover:bg-slate-50 border border-border shadow-xs"
 				>
 					{t("common.cancel")}
 				</Button.Root>
@@ -646,9 +646,10 @@
 			<Dialog.Footer class="flex items-center justify-end pt-2">
 				<Button.Root
 					type="button"
+					variant="outline"
 					size="sm"
 					onclick={() => (isDetailModalOpen = false)}
-					class="text-xs cursor-pointer"
+					class="text-xs cursor-pointer bg-white dark:bg-card hover:bg-slate-50 border border-border shadow-xs"
 				>
 					Close
 				</Button.Root>
@@ -735,7 +736,7 @@
 						variant="outline"
 						size="sm"
 						onclick={() => (isEditModalOpen = false)}
-						class="text-xs cursor-pointer"
+						class="text-xs cursor-pointer bg-white dark:bg-card hover:bg-slate-50 border border-border shadow-xs"
 					>
 						Cancel
 					</Button.Root>

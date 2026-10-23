@@ -25,7 +25,7 @@
 				{...props}
 				variant="outline"
 				size="sm"
-				class={cn("flex items-center gap-1.5 h-9 rounded-lg border-border/70 px-2.5 text-xs font-medium", className)}
+				class={cn("flex items-center gap-1.5 h-9 rounded-lg border border-border/70 bg-white dark:bg-card px-2.5 text-xs font-medium hover:bg-slate-50 dark:hover:bg-muted shadow-xs transition-colors", className)}
 			>
 				<LanguagesIcon class="size-4 text-muted-foreground" />
 				<span class="uppercase tracking-wider font-semibold">{i18n.locale}</span>

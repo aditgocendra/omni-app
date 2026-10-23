@@ -447,7 +447,7 @@
 					bind:value={selectedWarehouse}
 					items={warehouseFilterOptions}
 				>
-					<Select.Trigger class="h-10 w-full rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground shadow-xs cursor-pointer hover:border-primary/50 transition-colors">
+					<Select.Trigger class="h-10 w-full rounded-lg border border-border bg-white dark:bg-card px-3 text-xs font-medium text-foreground shadow-xs cursor-pointer hover:border-primary/50 hover:bg-slate-50 dark:hover:bg-muted/60 transition-colors">
 						<Select.Value placeholder={t("warehouse.transfer.filterWarehouse")} />
 					</Select.Trigger>
 					<Select.Content>
@@ -467,7 +467,7 @@
 					bind:value={selectedStatus}
 					items={statusFilterOptions}
 				>
-					<Select.Trigger class="h-10 w-full rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground shadow-xs cursor-pointer hover:border-primary/50 transition-colors">
+					<Select.Trigger class="h-10 w-full rounded-lg border border-border bg-white dark:bg-card px-3 text-xs font-medium text-foreground shadow-xs cursor-pointer hover:border-primary/50 hover:bg-slate-50 dark:hover:bg-muted/60 transition-colors">
 						<Select.Value placeholder={t("warehouse.transfer.filterStatus")} />
 					</Select.Trigger>
 					<Select.Content>
@@ -484,7 +484,7 @@
 			<Button.Root
 				variant="outline"
 				onclick={resetFilters}
-				class="h-10 gap-1.5 rounded-lg border border-border bg-card px-3.5 text-xs font-semibold text-foreground hover:bg-muted hover:text-foreground shadow-xs cursor-pointer shrink-0 transition-colors group/reset"
+				class="h-10 gap-1.5 rounded-lg border border-border bg-white dark:bg-card px-3.5 text-xs font-semibold text-foreground hover:bg-slate-50 dark:hover:bg-muted hover:text-foreground shadow-xs cursor-pointer shrink-0 transition-colors group/reset"
 				title="Reset all filters"
 			>
 				<RotateCcwIcon class="size-3.5 text-muted-foreground group-hover/reset:text-foreground transition-colors" />
@@ -584,7 +584,7 @@
 							<Button.Root
 								variant="ghost"
 								size="icon-sm"
-								class="size-8 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+								class="size-8 rounded-md border border-border/70 bg-white dark:bg-card hover:bg-slate-50 dark:hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer shadow-xs transition-colors"
 								{...props}
 								aria-label="More actions"
 							>
@@ -594,7 +594,7 @@
 					</DropdownMenu.Trigger>
 					<DropdownMenu.Content
 						align="end"
-						class="w-40 rounded-lg shadow-md border border-border/80 bg-card p-1"
+						class="w-40 rounded-lg shadow-md border border-border/80 bg-white dark:bg-card p-1"
 					>
 						<!-- Detail -->
 						<DropdownMenu.Item
@@ -793,7 +793,7 @@
 						variant="outline"
 						size="sm"
 						onclick={() => (isCreateModalOpen = false)}
-						class="text-xs cursor-pointer"
+						class="text-xs cursor-pointer bg-white dark:bg-card hover:bg-slate-50 border border-border shadow-xs"
 					>
 						{t("common.cancel")}
 					</Button.Root>
@@ -892,9 +892,10 @@
 			<div class="flex items-center justify-end pt-2">
 				<Button.Root
 					type="button"
+					variant="outline"
 					size="sm"
 					onclick={() => (isDetailModalOpen = false)}
-					class="text-xs cursor-pointer"
+					class="text-xs cursor-pointer bg-white dark:bg-card hover:bg-slate-50 border border-border shadow-xs"
 				>
 					Close
 				</Button.Root>
@@ -994,7 +995,7 @@
 						type="number"
 						min="1"
 						bind:value={formProducts}
-						class="h-9 w-full rounded-lg border border-border/80 bg-background px-3 text-xs text-foreground focus:border-primary focus:outline-hidden focus:ring-1 focus:ring-primary"
+						class="h-9 w-full rounded-lg border border-border/80 bg-white dark:bg-card px-3 text-xs text-foreground focus:border-primary focus:outline-hidden focus:ring-1 focus:ring-primary shadow-xs"
 						required
 					/>
 				</div>
@@ -1007,7 +1008,7 @@
 						variant="outline"
 						size="sm"
 						onclick={() => (isEditModalOpen = false)}
-						class="text-xs cursor-pointer"
+						class="text-xs cursor-pointer bg-white dark:bg-card hover:bg-slate-50 border border-border shadow-xs"
 					>
 						Cancel
 					</Button.Root>

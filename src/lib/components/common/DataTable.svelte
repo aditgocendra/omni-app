@@ -509,7 +509,7 @@
 						>
 							<Select.Trigger
 								size="sm"
-								class="h-7 w-18 text-xs font-semibold border border-border bg-card text-foreground cursor-pointer hover:bg-muted shadow-xs transition-colors"
+								class="h-7 w-18 text-xs font-semibold border border-border bg-white dark:bg-card text-foreground cursor-pointer hover:bg-slate-50 dark:hover:bg-muted shadow-xs transition-colors"
 							>
 								<Select.Value placeholder={String(perPage)} />
 							</Select.Trigger>
@@ -541,7 +541,7 @@
 							<Pagination.Content class="gap-1">
 								<Pagination.Item>
 									<Pagination.Previous
-										class="h-8 px-2.5 text-xs font-medium rounded-md cursor-pointer bg-card text-foreground hover:bg-muted border border-border/80 shadow-xs transition-colors"
+										class="h-8 px-2.5 text-xs font-medium rounded-md cursor-pointer bg-white dark:bg-card text-foreground hover:bg-slate-50 dark:hover:bg-muted border border-border/80 shadow-xs transition-colors"
 									/>
 								</Pagination.Item>
 								{#each pages as pageItem (pageItem.key)}
@@ -562,7 +562,7 @@
 													currentPage ===
 														pageItem.value
 														? "bg-primary! text-white! border-primary! hover:bg-primary/90! hover:text-white!"
-														: "text-foreground bg-card hover:bg-muted border border-border/80",
+														: "text-foreground bg-white dark:bg-card hover:bg-slate-50 dark:hover:bg-muted border border-border/80",
 												)}
 											>
 												{pageItem.value}
@@ -572,7 +572,7 @@
 								{/each}
 								<Pagination.Item>
 									<Pagination.Next
-										class="h-8 px-2.5 text-xs font-medium rounded-md cursor-pointer bg-card text-foreground hover:bg-muted border border-border/80 shadow-xs transition-colors"
+										class="h-8 px-2.5 text-xs font-medium rounded-md cursor-pointer bg-white dark:bg-card text-foreground hover:bg-slate-50 dark:hover:bg-muted border border-border/80 shadow-xs transition-colors"
 									/>
 								</Pagination.Item>
 							</Pagination.Content>

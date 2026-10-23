@@ -8,8 +8,8 @@
 		variants: {
 			variant: {
 				default: "bg-primary text-primary-foreground hover:bg-primary/80",
-				outline: "border-border bg-background hover:bg-muted hover:text-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 aria-expanded:bg-muted aria-expanded:text-foreground",
-				secondary: "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+				outline: "border-border bg-white text-foreground shadow-xs hover:bg-slate-50 hover:text-foreground dark:bg-card dark:border-border dark:hover:bg-muted/80 aria-expanded:bg-slate-100 dark:aria-expanded:bg-muted aria-expanded:text-foreground",
+				secondary: "bg-white text-secondary-foreground border border-border shadow-xs hover:bg-slate-50 dark:bg-secondary dark:text-secondary-foreground dark:border-transparent aria-expanded:bg-slate-100 dark:aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
 				ghost: "hover:bg-muted hover:text-foreground dark:hover:bg-muted/50 aria-expanded:bg-muted aria-expanded:text-foreground",
 				destructive: "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500/30 dark:bg-red-600 dark:hover:bg-red-700 shadow-xs",
 				link: "text-primary underline-offset-4 hover:underline",

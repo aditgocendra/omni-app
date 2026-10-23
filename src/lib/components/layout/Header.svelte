@@ -55,7 +55,7 @@
 >
 	<div class="flex items-center gap-3">
 		<Sidebar.Trigger
-			class="-ms-1 size-9 rounded-lg text-foreground hover:bg-muted"
+			class="-ms-1 size-9 rounded-lg border border-border/70 bg-white dark:bg-card text-foreground hover:bg-slate-50 dark:hover:bg-muted shadow-xs transition-colors"
 		/>
 		<Separator.Root orientation="vertical" class="h-4 bg-border/80" />
 		<Breadcrumb.Root class="hidden sm:block">
@@ -108,7 +108,7 @@
 			<input
 				type="search"
 				placeholder={t("common.search")}
-				class="h-9 w-full rounded-lg border border-border/70 bg-card/60 pl-9 pr-3 text-xs text-foreground placeholder:text-muted-foreground/80 focus:border-primary focus:outline-hidden focus:ring-1 focus:ring-primary transition-all"
+				class="h-9 w-full rounded-lg border border-border/70 bg-white dark:bg-card pl-9 pr-3 text-xs text-foreground placeholder:text-muted-foreground/80 focus:border-primary focus:outline-hidden focus:ring-1 focus:ring-primary shadow-xs transition-all"
 			/>
 		</div>
 
@@ -116,7 +116,7 @@
 		<Button.Root
 			variant="ghost"
 			size="icon"
-			class="relative size-9 rounded-lg border border-border/60 hover:bg-muted text-foreground"
+			class="relative size-9 rounded-lg border border-border/70 bg-white dark:bg-card hover:bg-slate-50 dark:hover:bg-muted text-foreground shadow-xs transition-colors"
 			aria-label={t("common.notifications")}
 		>
 			<BellIcon class="size-4.5" />
