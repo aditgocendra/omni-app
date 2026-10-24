@@ -122,9 +122,8 @@
 		</div>
 		<div class="flex flex-wrap items-center gap-2">
 			<Button.Root
-				variant="outline"
 				size="sm"
-				class="h-9 gap-1.5 rounded-lg border border-border/80 bg-white dark:bg-card text-foreground hover:bg-slate-50 dark:hover:bg-muted text-xs font-semibold shadow-xs transition-colors"
+				class="h-9 gap-1.5 rounded-lg bg-primary text-xs font-semibold text-white shadow-sm hover:bg-primary/90 transition-all cursor-pointer"
 			>
 				<DownloadIcon class="size-3.5" />
 				<span>{t("overview.exportReport")}</span>

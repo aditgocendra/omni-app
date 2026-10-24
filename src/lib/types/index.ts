@@ -70,3 +70,16 @@ export interface StockOpnameRecord {
 	recorder: string;
 	status: OpnameStatus;
 }
+
+export type UserStatus = "active" | "disable";
+
+export interface UserRecord {
+	id: string;
+	name: string;
+	email: string;
+	role: string;
+	status: UserStatus;
+	createdAt: string;
+	phone?: string;
+	avatar?: string;
+}

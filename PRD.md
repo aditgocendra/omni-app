@@ -141,6 +141,7 @@ Pondasi layout dashboard dibangun di atas blok **`sidebar-07`** dari `shadcn-sve
 - **Sidebar Navigation (`nav-main` & nav groups):**
   - Navigasi menu utama:
     - *Inventory* (Warehouse: `/inventory/warehouse`, Stock Transfer: `/inventory/stock-transfer`, Stock Opname: `/inventory/stock-opname`)
+    - *User* (Manage User: `/user/manage`)
     - *Settings* (General: `/settings/general`, Account: `/settings/account`, Notification: `/settings/notifications`)
   - Fitur collapsible sub-menu dan status link aktif berbasis URL SvelteKit.
 - **Sidebar Footer (`nav-user`):**
@@ -250,6 +251,38 @@ Modul Warehouse mengelola infrastruktur pergudangan, pergerakan barang antar fas
     - **Edit:** Memperbarui data varian atau catatan petugas.
     - **Delete:** Menghapus rekaman hasil audit stock opname.
 
+### 6.5 Module 4: User Management System (`/user/manage`)
+Modul User Management bertugas mengelola hak akses akun pengguna, penetapan peran (role), serta aktivasi/deaktivasi akun operasional dalam sistem.
+
+#### 6.5.1 Sub-Module: Manage User (`/user/manage`)
+- **Tujuan:** Manajemen akun personil sistem, penugasan level akses, aktivasi status kerja, dan pemeliharaan kredensial keamanan akun.
+- **Menu Hirarki:** `User` (menu utama) -> `Manage User` (sub menu, path: `/user/manage`).
+- **Header & Action Bar:**
+  - Layout: `justify-between items-center`
+  - Konten: Judul modul (*Manage User / Kelola Pengguna*) dan Sub-judul (*kegunaan/deskripsi manajemen peran pengguna*).
+  - Tombol Utama: `+ Create User / Tambah Pengguna` (Membuka modal formulir registrasi pengguna baru dengan warna primary dan teks putih).
+- **Search & Filter Controls:**
+  - Ukuran: Full width (`w-full`) responsif (`flex flex-col gap-3 lg:flex-row lg:items-center`).
+  - Komponen:
+    - Search input: Pencarian spesifik berdasarkan kolom `name` (contoh: *Yono Bakrie*), dilengkapi clear icon (`XIcon`).
+    - Filter dropdown: Filter berdasarkan `role` (*All Roles*, *Super Admin*, *Admin*, *Warehouse Manager*, *Inventory Staff*, *Cashier*).
+    - Tombol Reset: Mengembalikan input pencarian nama, filter role, serta sort state ke kondisi awal.
+- **Spesifikasi Tabel Data:**
+  - `name`: Nama lengkap pengguna dengan avatar/inisial nama (contoh: *Yono Bakrie*). Kolom ini memiliki indikator sortable (Ascending / Descending) pada table header.
+  - `email`: Alamat email resmi pengguna (contoh: *example@cronsyst.com*).
+  - `role`: Peran otorisasi dengan badge visual (contoh: *Super Admin*, *Admin*, *Warehouse Manager*, *Inventory Staff*, *Cashier*).
+  - `status`: Komponen interaktif **Switch Button** (*Active / Disable*) yang dapat langsung di-toggle statusnya di dalam tabel dengan feedback visual dan toast notification.
+  - `CreatedAt`: Tanggal pembuatan/registrasi akun (format `DD/MM/YYYY`, contoh: *18/02/2026*). Kolom ini memiliki indikator sortable (Ascending / Descending) pada table header.
+  - `Actions`: Tombol ikon aksi more (`EllipsisVerticalIcon`) dengan dropdown menu:
+    - **Detail:** Membuka pop-up modal profil dan spesifikasi hak akses pengguna.
+    - **Edit:** Membuka modal formulir perbaruan profil, role, dan nomor kontak pengguna.
+    - **Reset Password:** Membuka modal atur ulang kata sandi dengan fitur generator password acak, tombol salin ke clipboard, serta simpan kredensial.
+    - **Delete:** Membuka dialog konfirmasi penghapusan pengguna (`ConfirmDialog`).
+- **Spesifikasi Sorting:**
+  - Header kolom yang mendukung sorting: **Name** dan **CreatedAt**.
+- **Spesifikasi Pagination:**
+  - **Minimum Per Page adalah 10** (`perPage = 10`).
+  - Opsi pilihan pagination: `10, 20, 50, 100`.
 
 ---
 
@@ -269,6 +302,10 @@ omni-app/
 │   │   │   ├── +page.svelte      # Overview / Root Dashboard (/)
 │   │   │   ├── settings/
 │   │   │   │   └── +page.svelte  # Theme, Language, Profile settings
+│   │   │   ├── user/
+│   │   │   │   ├── +page.ts      # Redirect ke /user/manage
+│   │   │   │   └── manage/
+│   │   │   │       └── +page.svelte # Manage User (Table User, Role, Switch Status, CreatedAt Sort)
 │   │   │   └── inventory/
 │   │   │       ├── +page.ts      # Redirect ke /inventory/warehouse
 │   │   │       ├── warehouse/
@@ -279,11 +316,11 @@ omni-app/
 │   │   │           └── +page.svelte # Stock Opname (Audit Code, Variant Badges, Recorder)
 │   ├── lib/
 │   │   ├── components/
-│   │   │   ├── app-sidebar.svelte    # Root sidebar layout (dengan menu Warehouse & Settings)
+│   │   │   ├── app-sidebar.svelte    # Root sidebar layout (dengan menu Warehouse, User, Settings)
 │   │   │   ├── nav-main.svelte       # Menu navigasi utama hirarkis
 │   │   │   ├── nav-projects.svelte   # Active sales channels (Shopee, TikTok, POS)
 │   │   │   ├── nav-user.svelte       # User profile footer (dari block sidebar-07)
-│   │   │   ├── ui/                   # shadcn-svelte components (sidebar/*, button, card, etc.)
+│   │   │   ├── ui/                   # shadcn-svelte components (switch, sidebar/*, button, card, etc.)
 │   │   │   ├── layout/               # Header, MobileNav, Breadcrumbs
 │   │   │   └── common/               # MetricCard, ChannelBadge, DataTable, StatusDot
 │   │   ├── i18n/

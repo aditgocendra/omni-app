@@ -20,7 +20,7 @@
 	<Sidebar.MenuItem>
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger>
-				{#snippet child({ props })}
+				{#snippet child({ props }: { props: Record<string, unknown> })}
 					<Sidebar.MenuButton
 						size="lg"
 						class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
@@ -72,7 +72,7 @@
 				<DropdownMenu.Separator />
 				<DropdownMenu.Group>
 					<DropdownMenu.Item>
-						{#snippet child({ props })}
+						{#snippet child({ props }: { props: Record<string, unknown> })}
 							<a href="/settings/account" class="flex items-center gap-2 w-full" {...props}>
 								<BadgeCheckIcon class="size-4" />
 								<span>{t("common.account")}</span>

@@ -50,7 +50,9 @@
 		"warehouse": "Warehouse",
 		"manageWarehouse": "Warehouse",
 		"stockTransfer": "Stock Transfer",
-		"stockOpname": "Stock Opname"
+		"stockOpname": "Stock Opname",
+		"user": "User",
+		"manageUser": "Manage User"
 	},
 	"overview": {
 		"title": "Overview",
@@ -184,6 +186,50 @@
 			"deleteConfirmSingleWarning": "This action cannot be undone. This opname record will be permanently removed.",
 			"deleteConfirmBulkQuestion": "Are you sure you want to delete {count} selected stock opnames?",
 			"deleteConfirmBulkWarn": "This action cannot be undone. All selected opname records will be permanently removed."
+		}
+	},
+	"user": {
+		"manage": {
+			"title": "Manage User",
+			"subtitle": "Manage user accounts, system role permissions, and operational activation status.",
+			"createBtn": "Create User",
+			"searchPlaceholder": "Search by user name...",
+			"filterRole": "All Roles",
+			"reset": "Reset",
+			"colName": "Name",
+			"colEmail": "Email",
+			"colRole": "Role",
+			"colStatus": "Status",
+			"colCreatedAt": "CreatedAt",
+			"colActions": "Actions",
+			"statusActive": "Active",
+			"statusDisable": "Disable",
+			"actionDetail": "Detail",
+			"actionEdit": "Edit",
+			"actionResetPassword": "Reset Password",
+			"actionDelete": "Delete",
+			"emptyState": "No user accounts found.",
+			"deleteTitle": "Delete User",
+			"deleteBulkTitle": "Delete {count} Users",
+			"deleteDesc": "Confirm user account removal",
+			"deleteBulkDesc": "Bulk user account deletion confirmation",
+			"deleteConfirmSingleQuestion": "Are you sure you want to delete user",
+			"deleteConfirmSingleWarning": "This action cannot be undone. This user account will be permanently deleted from the system.",
+			"deleteConfirmBulkQuestion": "Are you sure you want to delete {count} selected users?",
+			"deleteConfirmBulkWarn": "This action cannot be undone. All selected user accounts will be permanently removed.",
+			"resetPasswordTitle": "Reset Password",
+			"resetPasswordDesc": "Send reset link or configure a new password for this account.",
+			"newPasswordLabel": "New Password",
+			"generatePassword": "Generate Random",
+			"savePassword": "Save New Password",
+			"createUserTitle": "Create New User",
+			"createUserDesc": "Enter identity details and system roles for the new user.",
+			"editUserTitle": "Edit User",
+			"editUserDesc": "Update profile identity, role permissions, or user status.",
+			"detailUserTitle": "User Details",
+			"detailUserDesc": "Detailed profile and system permission credentials.",
+			"resetFiltersNotice": "Filters reset to default settings.",
+			"statusChangedTo": "status successfully changed to"
 		}
 	}
 }

@@ -50,7 +50,9 @@
 		"warehouse": "Warehouse",
 		"manageWarehouse": "Warehouse",
 		"stockTransfer": "Transfer Stok",
-		"stockOpname": "Stok Opname"
+		"stockOpname": "Stok Opname",
+		"user": "User",
+		"manageUser": "Manage User"
 	},
 	"overview": {
 		"title": "Ringkasan",
@@ -184,6 +186,50 @@
 			"deleteConfirmSingleWarning": "Tindakan ini tidak dapat dibatalkan. Data opname ini akan dihapus secara permanen dari daftar.",
 			"deleteConfirmBulkQuestion": "Apakah Anda yakin ingin menghapus {count} data stock opname yang dipilih?",
 			"deleteConfirmBulkWarn": "Tindakan ini tidak dapat dibatalkan. Semua data opname yang dipilih akan dihapus secara permanen dari daftar."
+		}
+	},
+	"user": {
+		"manage": {
+			"title": "Manage User",
+			"subtitle": "Kelola data akun pengguna, hak akses peran (roles), serta status aktivasi akun operasional.",
+			"createBtn": "Tambah Pengguna",
+			"searchPlaceholder": "Cari berdasarkan nama pengguna...",
+			"filterRole": "Semua Role",
+			"reset": "Reset",
+			"colName": "Name",
+			"colEmail": "Email",
+			"colRole": "Role",
+			"colStatus": "Status",
+			"colCreatedAt": "CreatedAt",
+			"colActions": "Actions",
+			"statusActive": "Active",
+			"statusDisable": "Disable",
+			"actionDetail": "Detail",
+			"actionEdit": "Edit",
+			"actionResetPassword": "Reset Password",
+			"actionDelete": "Delete",
+			"emptyState": "Tidak ada data pengguna yang ditemukan.",
+			"deleteTitle": "Hapus Pengguna",
+			"deleteBulkTitle": "Hapus {count} Pengguna",
+			"deleteDesc": "Konfirmasi tindakan penghapusan akun pengguna",
+			"deleteBulkDesc": "Konfirmasi tindakan penghapusan massal pengguna",
+			"deleteConfirmSingleQuestion": "Apakah Anda yakin ingin menghapus akun pengguna",
+			"deleteConfirmSingleWarning": "Tindakan ini tidak dapat dibatalkan. Data pengguna ini akan dihapus secara permanen dari sistem.",
+			"deleteConfirmBulkQuestion": "Apakah Anda yakin ingin menghapus {count} data pengguna yang dipilih?",
+			"deleteConfirmBulkWarn": "Tindakan ini tidak dapat dibatalkan. Semua data pengguna terpilih akan dihapus permanen.",
+			"resetPasswordTitle": "Reset Password",
+			"resetPasswordDesc": "Kirim tautan reset atau atur password baru untuk akun pengguna ini.",
+			"newPasswordLabel": "Password Baru",
+			"generatePassword": "Generate Acak",
+			"savePassword": "Simpan Password",
+			"createUserTitle": "Tambah Pengguna Baru",
+			"createUserDesc": "Masukkan rincian identitas dan hak akses akun baru.",
+			"editUserTitle": "Edit Pengguna",
+			"editUserDesc": "Perbarui identitas, peran akses, atau status pengguna.",
+			"detailUserTitle": "Detail Pengguna",
+			"detailUserDesc": "Rincian profil dan informasi akses akun pengguna.",
+			"resetFiltersNotice": "Filter berhasil direset ke pengaturan default.",
+			"statusChangedTo": "berhasil diubah statusnya menjadi"
 		}
 	}
 }

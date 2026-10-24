@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
 	import * as Button from "$lib/components/ui/button/index.js";
+	import { buttonVariants } from "$lib/components/ui/button/index.js";
 	import * as Dialog from "$lib/components/ui/dialog/index.js";
 	import { Input } from "$lib/components/ui/input/index.js";
 	import { Label } from "$lib/components/ui/label/index.js";
@@ -316,7 +317,7 @@
 			<Button.Root
 				onclick={openCreate}
 				size="default"
-				class="h-9.5 gap-2 rounded-lg bg-primary px-4 text-xs font-semibold text-white shadow-sm hover:bg-primary/90 transition-all cursor-pointer"
+				class="h-10 gap-2 rounded-lg bg-primary px-4 text-xs font-semibold text-white shadow-sm hover:bg-primary/90 transition-all cursor-pointer"
 			>
 				<PlusIcon class="size-4" />
 				<span>{t("warehouse.manage.createBtn")}</span>
@@ -366,7 +367,13 @@
 		bind:selectedIds
 		onBulkDelete={handleOpenBulkDelete}
 	>
-		{#snippet cell({ item, column })}
+		{#snippet cell({
+			item,
+			column,
+		}: {
+			item: WarehouseRecord;
+			column: DataTableColumn<WarehouseRecord>;
+		})}
 			{#if column.id === "warehouse"}
 				<div>
 					<span
@@ -400,18 +407,15 @@
 				</span>
 			{:else if column.id === "actions"}
 				<DropdownMenu.Root>
-					<DropdownMenu.Trigger>
-						{#snippet child({ props })}
-							<Button.Root
-								variant="ghost"
-								size="icon-sm"
-								class="size-8 rounded-md border border-border/70 bg-white dark:bg-card hover:bg-slate-50 dark:hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer shadow-xs transition-colors"
-								{...props}
-								aria-label="More actions"
-							>
-								<EllipsisVerticalIcon class="size-4" />
-							</Button.Root>
-						{/snippet}
+					<DropdownMenu.Trigger
+						class={buttonVariants({
+							variant: "ghost",
+							size: "icon-sm",
+							class: "bg-white dark:bg-card hover:bg-slate-50 dark:hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer transition-colors",
+						})}
+						aria-label="More actions"
+					>
+						<EllipsisVerticalIcon class="size-4" />
 					</DropdownMenu.Trigger>
 					<DropdownMenu.Content
 						align="end"
@@ -488,7 +492,9 @@
 		class="w-full max-w-md rounded-xl border border-border/80 bg-card p-6 shadow-xl"
 	>
 		<Dialog.Header class="pb-4 border-b border-border/60 text-left">
-			<Dialog.Title class="font-heading text-lg font-bold text-foreground">
+			<Dialog.Title
+				class="font-heading text-lg font-bold text-foreground"
+			>
 				{t("warehouse.manage.createBtn")}
 			</Dialog.Title>
 			<Dialog.Description class="sr-only">
@@ -586,7 +592,9 @@
 			<Dialog.Header class="pb-4 border-b border-border/60 text-left">
 				<div class="flex items-center gap-2">
 					<WarehouseIcon class="size-4.5 text-primary" />
-					<Dialog.Title class="font-heading text-lg font-bold text-foreground">
+					<Dialog.Title
+						class="font-heading text-lg font-bold text-foreground"
+					>
 						Warehouse Detail
 					</Dialog.Title>
 				</div>
@@ -607,7 +615,8 @@
 				<div
 					class="flex justify-between items-center py-2 border-b border-border/40"
 				>
-					<span class="text-muted-foreground">Manager In-Charge:</span>
+					<span class="text-muted-foreground">Manager In-Charge:</span
+					>
 					<span class="font-semibold text-foreground"
 						>{selectedWarehouse.manager}</span
 					>
@@ -634,7 +643,8 @@
 					<div
 						class="flex justify-between items-start py-2 border-b border-border/40"
 					>
-						<span class="text-muted-foreground">Address / Hub:</span>
+						<span class="text-muted-foreground">Address / Hub:</span
+						>
 						<span
 							class="font-medium text-foreground text-right max-w-50"
 							>{selectedWarehouse.location}</span
@@ -665,7 +675,9 @@
 	>
 		{#if selectedWarehouse}
 			<Dialog.Header class="pb-4 border-b border-border/60 text-left">
-				<Dialog.Title class="font-heading text-lg font-bold text-foreground">
+				<Dialog.Title
+					class="font-heading text-lg font-bold text-foreground"
+				>
 					Edit Warehouse
 				</Dialog.Title>
 				<Dialog.Description class="sr-only">
@@ -769,8 +781,8 @@
 >
 	{#if warehouseToDelete}
 		<p>
-			{t("warehouse.manage.deleteConfirmSingleQuestion")} <strong
-				class="text-red-600 dark:text-red-400 font-bold"
+			{t("warehouse.manage.deleteConfirmSingleQuestion")}
+			<strong class="text-red-600 dark:text-red-400 font-bold"
 				>{warehouseToDelete.warehouse}</strong
 			>?
 		</p>
@@ -779,7 +791,9 @@
 		</p>
 	{:else}
 		<p>
-			{t("warehouse.manage.deleteConfirmBulkQuestion", { count: selectedIds.length })}
+			{t("warehouse.manage.deleteConfirmBulkQuestion", {
+				count: selectedIds.length,
+			})}
 		</p>
 		<p class="text-xs text-muted-foreground">
 			{t("warehouse.manage.deleteConfirmBulkWarn")}

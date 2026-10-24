@@ -1,5 +1,6 @@
 <script lang="ts">
 	import BoxIcon from "@lucide/svelte/icons/box";
+	import UsersIcon from "@lucide/svelte/icons/users";
 	import SettingsIcon from "@lucide/svelte/icons/settings";
 	import GalleryVerticalEndIcon from "@lucide/svelte/icons/gallery-vertical-end";
 	import NavMain from "./nav-main.svelte";
@@ -40,6 +41,21 @@
 					title: t("nav.stockOpname"),
 					url: "/inventory/stock-opname",
 					isActive: currentPath.startsWith("/inventory/stock-opname"),
+				},
+			],
+		},
+		{
+			title: t("nav.user"),
+			url: "/user/manage",
+			icon: UsersIcon,
+			isActive: currentPath.startsWith("/user"),
+			items: [
+				{
+					title: t("nav.manageUser"),
+					url: "/user/manage",
+					isActive:
+						currentPath.startsWith("/user/manage") ||
+						currentPath === "/user",
 				},
 			],
 		},
@@ -85,7 +101,7 @@
 					size="lg"
 					class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 				>
-					{#snippet child({ props })}
+					{#snippet child({ props }: { props: Record<string, unknown> })}
 						<a href="/" {...props}>
 							<div
 								class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground shadow-xs"
