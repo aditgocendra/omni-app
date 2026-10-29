@@ -9,7 +9,7 @@
 
 <Sidebar.Provider>
 	<AppSidebar />
-	<Sidebar.Inset class="flex flex-col min-h-screen bg-background text-foreground overflow-x-hidden">
+	<Sidebar.Inset class="flex flex-col min-h-screen bg-background text-foreground overflow-x-clip">
 		<Header />
 		<main class="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full">
 			{@render children()}

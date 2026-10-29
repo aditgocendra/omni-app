@@ -16,6 +16,32 @@
 	const breadcrumbItems = $derived.by(() => {
 		if (isRoot) return [];
 
+		if (currentPath.startsWith("/product")) {
+			if (currentPath.startsWith("/product/manage/create")) {
+				return [
+					{ label: t("nav.product"), href: "/product/manage" },
+					{ label: t("nav.manageProduct"), href: "/product/manage" },
+					{ label: t("product.create.title") },
+				];
+			}
+			if (currentPath.startsWith("/product/categories")) {
+				return [
+					{ label: t("nav.product"), href: "/product/manage" },
+					{ label: t("nav.categories") },
+				];
+			}
+			if (currentPath.startsWith("/product/merk")) {
+				return [
+					{ label: t("nav.product"), href: "/product/manage" },
+					{ label: t("nav.merk") },
+				];
+			}
+			return [
+				{ label: t("nav.product"), href: "/product/manage" },
+				{ label: t("nav.manageProduct") },
+			];
+		}
+
 		if (currentPath.startsWith("/inventory")) {
 			let subPage = t("nav.warehouse");
 			if (currentPath.startsWith("/inventory/stock-transfer")) {

@@ -83,3 +83,57 @@ export interface UserRecord {
 	phone?: string;
 	avatar?: string;
 }
+
+export type ProductStatus = "active" | "disable";
+
+export interface ProductVariant {
+	id: string;
+	name: string;
+	sku: string;
+	image?: string;
+	stock: number;
+	price?: number;
+	status?: ProductStatus;
+	attributes?: Record<string, string>;
+	weight?: number;
+	length?: number;
+	width?: number;
+	height?: number;
+}
+
+export interface ProductRecord {
+	id: string;
+	name: string;
+	sku: string;
+	image: string;
+	category: string;
+	merk: string;
+	warehouse: string;
+	stock: number;
+	status: ProductStatus;
+	createdAt: string;
+	variants?: ProductVariant[];
+	price?: number;
+	description?: string;
+	weight?: number;
+	length?: number;
+	width?: number;
+	height?: number;
+}
+
+export interface ProductCategoryRecord {
+	id: string;
+	code: string; // 3 uppercase letters, e.g. "ELC"
+	category: string;
+	products: number;
+	createdAt: string;
+	description?: string;
+}
+
+export interface ProductMerkRecord {
+	id: string;
+	merk: string;
+	products: number;
+	createdAt: string;
+	origin?: string;
+}

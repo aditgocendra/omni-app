@@ -1,5 +1,6 @@
 <script lang="ts">
 	import BoxIcon from "@lucide/svelte/icons/box";
+	import PackageIcon from "@lucide/svelte/icons/package";
 	import UsersIcon from "@lucide/svelte/icons/users";
 	import SettingsIcon from "@lucide/svelte/icons/settings";
 	import GalleryVerticalEndIcon from "@lucide/svelte/icons/gallery-vertical-end";
@@ -19,6 +20,31 @@
 	const currentPath = $derived(page.url.pathname);
 
 	const navMain = $derived([
+		{
+			title: t("nav.product"),
+			url: "/product/manage",
+			icon: PackageIcon,
+			isActive: currentPath.startsWith("/product"),
+			items: [
+				{
+					title: t("nav.manageProduct"),
+					url: "/product/manage",
+					isActive:
+						currentPath.startsWith("/product/manage") ||
+						currentPath === "/product",
+				},
+				{
+					title: t("nav.categories"),
+					url: "/product/categories",
+					isActive: currentPath.startsWith("/product/categories"),
+				},
+				{
+					title: t("nav.merk"),
+					url: "/product/merk",
+					isActive: currentPath.startsWith("/product/merk"),
+				},
+			],
+		},
 		{
 			title: t("nav.inventory"),
 			url: "/inventory/warehouse",
