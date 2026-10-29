@@ -330,7 +330,7 @@
 			"bulkEditTitle": "Bulk Edit All Variants",
 			"bulkEditDesc": "Fill values and click 'Apply to All' to update all variants",
 			"applyToAll": "Apply to All",
-			"bulkSkuPlaceholder": "e.g. SKU-MAIN",
+			"bulkSkuPlaceholder": "e.g. BLK",
 			"variantName": "Variant",
 			"variantSku": "SKU",
 			"variantStock": "Stock",

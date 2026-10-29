@@ -330,7 +330,7 @@
 			"bulkEditTitle": "Atur Sekaligus Semua Varian",
 			"bulkEditDesc": "Isi nilai lalu klik 'Terapkan ke Semua' untuk mengubah seluruh varian",
 			"applyToAll": "Terapkan ke Semua",
-			"bulkSkuPlaceholder": "Contoh: SKU-UTAMA",
+			"bulkSkuPlaceholder": "Contoh: BLK",
 			"variantName": "Varian",
 			"variantSku": "SKU",
 			"variantStock": "Stok",

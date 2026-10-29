@@ -90,6 +90,7 @@ export interface ProductVariant {
 	id: string;
 	name: string;
 	sku: string;
+	skuSuffix?: string;
 	image?: string;
 	stock: number;
 	price?: number;
