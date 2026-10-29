@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
 	import * as Button from "$lib/components/ui/button/index.js";
+	import { buttonVariants } from "$lib/components/ui/button/index.js";
 	import * as Select from "$lib/components/ui/select/index.js";
 	import { Input } from "$lib/components/ui/input/index.js";
 	import { Badge } from "$lib/components/ui/badge/index.js";
@@ -522,7 +523,7 @@
 		bind:selectedIds
 		onBulkDelete={handleOpenBulkDelete}
 	>
-		{#snippet cell({ item, column })}
+		{#snippet cell({ item, column }: { item: StockOpnameRecord; column: DataTableColumn<StockOpnameRecord> })}
 			{#if column.id === "code"}
 				<span class="font-mono text-xs font-bold text-primary">
 					{item.code}
@@ -567,18 +568,15 @@
 				{/if}
 			{:else if column.id === "actions"}
 				<DropdownMenu.Root>
-					<DropdownMenu.Trigger>
-						{#snippet child({ props })}
-							<Button.Root
-								variant="ghost"
-								size="icon-sm"
-								class="size-8 rounded-md border border-border/70 bg-white dark:bg-card hover:bg-slate-50 dark:hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer shadow-xs transition-colors"
-								{...props}
-								aria-label="More actions"
-							>
-								<EllipsisVerticalIcon class="size-4" />
-							</Button.Root>
-						{/snippet}
+					<DropdownMenu.Trigger
+						class={buttonVariants({
+							variant: "ghost",
+							size: "icon-sm",
+							class: "bg-white dark:bg-card hover:bg-slate-50 dark:hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer transition-colors",
+						})}
+						aria-label="More actions"
+					>
+						<EllipsisVerticalIcon class="size-4" />
 					</DropdownMenu.Trigger>
 					<DropdownMenu.Content
 						align="end"
@@ -739,7 +737,7 @@
 					<Select.Root
 						type="single"
 						value={formStatus}
-						onValueChange={(v) => {
+						onValueChange={(v: string) => {
 							if (v === "Draft" || v === "Completed")
 								formStatus = v;
 						}}
@@ -983,7 +981,7 @@
 					<Select.Root
 						type="single"
 						value={formStatus}
-						onValueChange={(v) => {
+						onValueChange={(v: string) => {
 							if (v === "Draft" || v === "Completed")
 								formStatus = v;
 						}}

@@ -140,7 +140,9 @@ Pondasi layout dashboard dibangun di atas blok **`sidebar-07`** dari `shadcn-sve
   - Menggantikan team switcher dengan branding header yang elegan, minimalis, dan selaras dengan tema aplikasi.
 - **Sidebar Navigation (`nav-main` & nav groups):**
   - Navigasi menu utama:
+    - *Product* (Manage Product: `/product/manage`, Categories: `/product/categories`, Merk: `/product/merk`)
     - *Inventory* (Warehouse: `/inventory/warehouse`, Stock Transfer: `/inventory/stock-transfer`, Stock Opname: `/inventory/stock-opname`)
+    - *User* (Manage User: `/user/manage`)
     - *Settings* (General: `/settings/general`, Account: `/settings/account`, Notification: `/settings/notifications`)
   - Fitur collapsible sub-menu dan status link aktif berbasis URL SvelteKit.
 - **Sidebar Footer (`nav-user`):**
@@ -250,6 +252,135 @@ Modul Warehouse mengelola infrastruktur pergudangan, pergerakan barang antar fas
     - **Edit:** Memperbarui data varian atau catatan petugas.
     - **Delete:** Menghapus rekaman hasil audit stock opname.
 
+### 6.5 Module 4: User Management System (`/user/manage`)
+Modul User Management bertugas mengelola hak akses akun pengguna, penetapan peran (role), serta aktivasi/deaktivasi akun operasional dalam sistem.
+
+#### 6.5.1 Sub-Module: Manage User (`/user/manage`)
+- **Tujuan:** Manajemen akun personil sistem, penugasan level akses, aktivasi status kerja, dan pemeliharaan kredensial keamanan akun.
+- **Menu Hirarki:** `User` (menu utama) -> `Manage User` (sub menu, path: `/user/manage`).
+- **Header & Action Bar:**
+  - Layout: `justify-between items-center`
+  - Konten: Judul modul (*Manage User / Kelola Pengguna*) dan Sub-judul (*kegunaan/deskripsi manajemen peran pengguna*).
+  - Tombol Utama: `+ Create User / Tambah Pengguna` (Membuka modal formulir registrasi pengguna baru dengan warna primary dan teks putih).
+- **Search & Filter Controls:**
+  - Ukuran: Full width (`w-full`) responsif (`flex flex-col gap-3 lg:flex-row lg:items-center`).
+  - Komponen:
+    - Search input: Pencarian spesifik berdasarkan kolom `name` (contoh: *Yono Bakrie*), dilengkapi clear icon (`XIcon`).
+    - Filter dropdown: Filter berdasarkan `role` (*All Roles*, *Super Admin*, *Admin*, *Warehouse Manager*, *Inventory Staff*, *Cashier*).
+    - Tombol Reset: Mengembalikan input pencarian nama, filter role, serta sort state ke kondisi awal.
+- **Spesifikasi Tabel Data:**
+  - `name`: Nama lengkap pengguna dengan avatar/inisial nama (contoh: *Yono Bakrie*). Kolom ini memiliki indikator sortable (Ascending / Descending) pada table header.
+  - `email`: Alamat email resmi pengguna (contoh: *example@cronsyst.com*).
+  - `role`: Peran otorisasi dengan badge visual (contoh: *Super Admin*, *Admin*, *Warehouse Manager*, *Inventory Staff*, *Cashier*).
+  - `status`: Komponen interaktif **Switch Button** (*Active / Disable*) yang dapat langsung di-toggle statusnya di dalam tabel dengan feedback visual dan toast notification.
+  - `CreatedAt`: Tanggal pembuatan/registrasi akun (format `DD/MM/YYYY`, contoh: *18/02/2026*). Kolom ini memiliki indikator sortable (Ascending / Descending) pada table header.
+  - `Actions`: Tombol ikon aksi more (`EllipsisVerticalIcon`) dengan dropdown menu:
+    - **Detail:** Membuka pop-up modal profil dan spesifikasi hak akses pengguna.
+    - **Edit:** Membuka modal formulir perbaruan profil, role, dan nomor kontak pengguna.
+    - **Reset Password:** Membuka modal atur ulang kata sandi dengan fitur generator password acak, tombol salin ke clipboard, serta simpan kredensial.
+    - **Delete:** Membuka dialog konfirmasi penghapusan pengguna (`ConfirmDialog`).
+- **Spesifikasi Sorting:**
+  - Header kolom yang mendukung sorting: **Name** dan **CreatedAt**.
+- **Spesifikasi Pagination:**
+  - **Minimum Per Page adalah 10** (`perPage = 10`).
+  - Opsi pilihan pagination: `10, 20, 50, 100`.
+
+### 6.6 Module 5: Product Management System (`/product`)
+Modul Product mengelola katalog produk omni-channel, varian produk terperinci, kategori retail terstandarisasi, dan manajemen brand/merk produsen.
+
+#### 6.6.1 Sub-Module: Manage Product (`/product/manage`)
+- **Tujuan:** Manajemen katalog barang master, pemantauan ketersediaan stok fisik gudang, kontrol status aktivasi penjualan, serta ekspansi sub-tabel varian produk secara dinamis.
+- **Menu Hirarki:** `Product` (menu utama) -> `Manage Product` (sub menu, path: `/product/manage`).
+- **Header & Action Bar:**
+  - Layout: `justify-between items-center`
+  - Konten: Judul modul (*Manage Product / Kelola Produk*) dan Sub-judul (*kegunaan/deskripsi katalog produk omni-channel*).
+  - Tombol Utama: `+ Create Product / Tambah Produk`. **Catatan Penting:** Tombol create mengarah langsung ke page dedicated `/product/manage/create` (bukan dialog modal).
+- **Search & Filter Controls:**
+  - Ukuran: Full width (`w-full`) responsif.
+  - Komponen:
+    - Search input: Live filter berdasarkan kolom `name` dan `sku` dengan clear icon (`XIcon`).
+    - Filter dropdown Category: Filter berdasarkan kategori (*All Categories*, *Gadget & Elektronik*, *Audio & Wearables*, *Fashion & Footwear*, *Komputer & Aksesoris*, *Home Appliances*).
+    - Filter dropdown Merk: Filter berdasarkan merk/brand (*All Merk*, *Apple*, *Samsung*, *Sony*, *Nike*, *Logitech*, *Asus*, dll).
+    - Filter dropdown Gudang: Filter berdasarkan fasilitas penyimpanan (*All Warehouses*, *Gudang A*, *Gudang B*, *Gudang C*, *Gudang D*).
+    - Tombol Reset: Mereset seluruh parameter pencarian, filter dropdown, dan pagination ke nilai awal.
+- **Spesifikasi Tabel Data:**
+  - `checkbox`: Checkbox seleksi baris untuk operasi massal (*Bulk Delete*), dilengkapi select-all di table header.
+  - `product`: Kolom gabungan berisi:
+    - Tombol chevron expand/collapse untuk membuka daftar varian.
+    - Thumbnail gambar produk beresolusi tinggi dengan container rounded border.
+    - Nama produk lengkap (contoh: *Apple iPhone 15 Pro Max*).
+    - Kode unik SKU produk (contoh: *APL-IP15PM*).
+    - Badge counter jumlah varian (contoh: *3 Varian*).
+  - `stok`: Kuantitas total stok produk dalam bentuk numeral terformat (contoh: *100 unit*).
+  - `status`: Komponen interaktif **Switch Button** (*Active / Disable*) yang dapat langsung di-toggle statusnya dengan feedback visual dan toast notification.
+  - `CreatedAt`: Tanggal pembuatan data (format `DD/MM/YYYY`, contoh: *18/02/2026*). Kolom ini memiliki indikator sortable (Ascending / Descending) pada table header.
+  - `Actions`: Tombol ikon aksi more (`EllipsisVerticalIcon`) dengan dropdown menu:
+    - **Detail:** Membuka pop-up modal spesifikasi katalog, harga, status, dan rincian varian.
+    - **Edit:** Membuka formulir modal perbaruan data nama, SKU, kategori, merk, stok, dan alokasi gudang.
+    - **Delete:** Menghapus data produk dengan dialog konfirmasi (`ConfirmDialog`).
+- **Spesifikasi Collapsible Rows (Varian Produk):**
+  - Setiap baris produk dilengkapi tombol toggle collapsible (`ChevronRightIcon` / `ChevronDownIcon`).
+  - Saat di-expand, menampilkan nested sub-table yang memuat rincian variasi produk: Nama Varian (contoh: *Natural Titanium - 256GB*), SKU Varian (*APL-IP15PM-NT-256*), Harga (format Rupiah), Kuantitas Stok, dan Badge Status (*Active / Disable*).
+- **Spesifikasi Sorting:**
+  - Header kolom yang mendukung sorting: **Name** dan **CreatedAt**.
+- **Spesifikasi Pagination:**
+  - **Minimum Per Page adalah 10** (`perPage = 10`).
+  - Opsi pilihan pagination: `10, 20, 50, 100`.
+
+#### 6.6.2 Dedicated Page: Create Product (`/product/manage/create`)
+- **Tujuan:** Halaman formulir mandiri untuk registrasi produk baru ke dalam katalog sistem.
+- **Navigasi:** Tombol kembali (*Back button*) ke rute `/product/manage` dan breadcrumb dinamis (*Product -> Manage Product -> Create Product*).
+- **Struktur Formulir:**
+  - Informasi Umum: Nama Produk, SKU Produk, Kategori, Merk, Harga Dasar.
+  - Alokasi Gudang & Inventaris: Pemilihan Gudang Utama, Stok Awal, dan Switch Status Produk (*Active / Disable*).
+  - Builder Varian Produk: Fitur penambahan variasi dinamis (Nama Varian, SKU Varian, Harga, Stok) dengan tombol hapus varian per baris.
+  - Gambar Produk: Preview gambar interaktif, input URL gambar, dan selector preset gambar cepat (Smartphone, Headphones, Sneakers, Laptop).
+  - Ringkasan Katalog: Card ringkasan data sebelum disimpan dan tombol submit *Save Product*.
+
+#### 6.6.3 Sub-Module: Categories (`/product/categories`)
+- **Tujuan:** Manajemen kategori retail untuk pengelompokan produk secara terstruktur dengan standarisasi kode prefix 3 huruf.
+- **Menu Hirarki:** `Product` (menu utama) -> `Categories` (sub menu, path: `/product/categories`).
+- **Header & Action Bar:**
+  - Layout: `justify-between items-center`
+  - Konten: Judul modul (*Categories / Kategori*) dan Sub-judul.
+  - Tombol Utama: `+ Create Category / Tambah Kategori` (Membuka dialog modal registrasi kategori baru).
+- **Search & Filter Controls:**
+  - Ukuran: Full width (`w-full`) responsif.
+  - Komponen: Search input (pencarian berdasarkan nama kategori atau kode prefix) dan Tombol Reset.
+- **Spesifikasi Tabel Data:**
+  - `checkbox`: Checkbox seleksi baris untuk bulk delete.
+  - `Code`: Kode singkatan 3 huruf kapital (contoh: *ELC* untuk electronic, *AUD* untuk audio, *FAS* untuk fashion).
+  - `Category`: Nama kategori produk (contoh: *Gadget & Elektronik*).
+  - `Products`: Total kuantitas produk yang terasosiasi dalam kategori (contoh: *17*).
+  - `CreatedAt`: Tanggal pembuatan data (format `DD/MM/YYYY`, contoh: *18/02/2026*). Kolom ini memiliki indikator sortable (Ascending / Descending) pada table header.
+  - `Actions`: Tombol ikon aksi more (`EllipsisVerticalIcon`) dengan dropdown menu: **Detail**, **Edit**, dan **Delete**.
+- **Spesifikasi Sorting:**
+  - Header kolom yang mendukung sorting: **Category (Name)** dan **CreatedAt**.
+- **Spesifikasi Pagination:**
+  - **Minimum Per Page adalah 10** (`perPage = 10`).
+  - Opsi pilihan pagination: `10, 20, 50, 100`.
+
+#### 6.6.4 Sub-Module: Merk (`/product/merk`)
+- **Tujuan:** Manajemen basis data merek dagang, brand manufaktur, dan label vendor resmi produk.
+- **Menu Hirarki:** `Product` (menu utama) -> `Merk` (sub menu, path: `/product/merk`).
+- **Header & Action Bar:**
+  - Layout: `justify-between items-center`
+  - Konten: Judul modul (*Merk / Merk*) dan Sub-judul.
+  - Tombol Utama: `+ Create Merk / Tambah Merk` (Membuka dialog modal pendaftaran merk baru).
+- **Search & Filter Controls:**
+  - Ukuran: Full width (`w-full`) responsif.
+  - Komponen: Search input (pencarian berdasarkan nama brand atau negara asal) dan Tombol Reset.
+- **Spesifikasi Tabel Data:**
+  - `checkbox`: Checkbox seleksi baris untuk bulk delete.
+  - `Merk`: Nama merek dagang / brand manufaktur (contoh: *Apple*, *Samsung*, *Nike*).
+  - `Products`: Total kuantitas produk yang menggunakan merk tersebut (contoh: *21*).
+  - `CreatedAt`: Tanggal pendaftaran data (format `DD/MM/YYYY`, contoh: *18/02/2026*). Kolom ini memiliki indikator sortable (Ascending / Descending) pada table header.
+  - `Actions`: Tombol ikon aksi more (`EllipsisVerticalIcon`) dengan dropdown menu: **Detail**, **Edit**, dan **Delete**.
+- **Spesifikasi Sorting:**
+  - Header kolom yang mendukung sorting: **Merk (Name)** dan **CreatedAt**.
+- **Spesifikasi Pagination:**
+  - **Minimum Per Page adalah 10** (`perPage = 10`).
+  - Opsi pilihan pagination: `10, 20, 50, 100`.
 
 ---
 
@@ -269,6 +400,20 @@ omni-app/
 │   │   │   ├── +page.svelte      # Overview / Root Dashboard (/)
 │   │   │   ├── settings/
 │   │   │   │   └── +page.svelte  # Theme, Language, Profile settings
+│   │   │   ├── product/
+│   │   │   │   ├── +page.ts      # Redirect ke /product/manage
+│   │   │   │   ├── manage/
+│   │   │   │   │   ├── +page.svelte # Manage Product (Table Product, Collapsible Variants, Switch Status)
+│   │   │   │   │   └── create/
+│   │   │   │   │       └── +page.svelte # Dedicated Create Product Page (Non-dialog)
+│   │   │   │   ├── categories/
+│   │   │   │   │   └── +page.svelte # Categories (3-letter Code, Products Count, Sort, Search)
+│   │   │   │   └── merk/
+│   │   │   │       └── +page.svelte # Merk (Brand Name, Products Count, Sort, Search)
+│   │   │   ├── user/
+│   │   │   │   ├── +page.ts      # Redirect ke /user/manage
+│   │   │   │   └── manage/
+│   │   │   │       └── +page.svelte # Manage User (Table User, Role, Switch Status, CreatedAt Sort)
 │   │   │   └── inventory/
 │   │   │       ├── +page.ts      # Redirect ke /inventory/warehouse
 │   │   │       ├── warehouse/
@@ -279,11 +424,11 @@ omni-app/
 │   │   │           └── +page.svelte # Stock Opname (Audit Code, Variant Badges, Recorder)
 │   ├── lib/
 │   │   ├── components/
-│   │   │   ├── app-sidebar.svelte    # Root sidebar layout (dengan menu Warehouse & Settings)
+│   │   │   ├── app-sidebar.svelte    # Root sidebar layout (dengan menu Warehouse, User, Settings)
 │   │   │   ├── nav-main.svelte       # Menu navigasi utama hirarkis
 │   │   │   ├── nav-projects.svelte   # Active sales channels (Shopee, TikTok, POS)
 │   │   │   ├── nav-user.svelte       # User profile footer (dari block sidebar-07)
-│   │   │   ├── ui/                   # shadcn-svelte components (sidebar/*, button, card, etc.)
+│   │   │   ├── ui/                   # shadcn-svelte components (switch, sidebar/*, button, card, etc.)
 │   │   │   ├── layout/               # Header, MobileNav, Breadcrumbs
 │   │   │   └── common/               # MetricCard, ChannelBadge, DataTable, StatusDot
 │   │   ├── i18n/
@@ -441,6 +586,10 @@ AI Agent harus mengeksekusi project ini secara bertahap dengan urutan logis beri
    - **Warehouse (`/inventory/warehouse`):** Tabel master fasilitas, kuantitas produk, penugasan manajer, sorting `createdAt`, aksi dropdown (Detail, Copy, Edit, Delete), pencarian terpadu, dan formulir modal pembuatan gudang.
    - **Stock Transfer (`/inventory/stock-transfer`):** Tabel perpindahan stok antar hub, sorting `Date`, filter gudang, filter status (Success, Pending, Cancelled), aksi dropdown (Detail, Accept, Reject, Edit, Delete), dan modal transfer order.
    - **Stock Opname (`/inventory/stock-opname`):** Audit kesesuaian fisik stok, sorting `Date`, badge varian produk, filter gudang & status (Completed, Draft), aksi dropdown (Detail, Edit, Delete), dan modal registrasi opname.
+7. **Product Module (`/product`):**
+   - **Manage Product (`/product/manage` & `/product/manage/create`):** Tabel produk master, thumbnail gambar, SKU, stok, status toggle switch, sorting Name & CreatedAt, baris collapsible varian produk terperinci, filter multi-dimensi (kategori, merk, gudang), pagination min 10, serta halaman dedicated pembuatan produk baru (`/product/manage/create`).
+   - **Categories (`/product/categories`):** Tabel kategori retail terstruktur, kode prefix 3 huruf (e.g. ELC), jumlah produk terasosiasi, sorting Name & CreatedAt, pencarian nama, pagination min 10, serta modal manajemen kategori.
+   - **Merk (`/product/merk`):** Tabel brand manufaktur dan vendor, kuantitas produk, sorting Name & CreatedAt, pencarian nama, pagination min 10, serta modal registrasi merk.
 
 ### Phase 7: Code Review, Cleanliness & Verification
 1. Jalankan `bun run check` (Svelte/TypeScript verification) untuk memastikan tidak ada type error.

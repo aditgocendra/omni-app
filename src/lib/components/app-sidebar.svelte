@@ -1,5 +1,7 @@
 <script lang="ts">
 	import BoxIcon from "@lucide/svelte/icons/box";
+	import PackageIcon from "@lucide/svelte/icons/package";
+	import UsersIcon from "@lucide/svelte/icons/users";
 	import SettingsIcon from "@lucide/svelte/icons/settings";
 	import GalleryVerticalEndIcon from "@lucide/svelte/icons/gallery-vertical-end";
 	import NavMain from "./nav-main.svelte";
@@ -18,6 +20,31 @@
 	const currentPath = $derived(page.url.pathname);
 
 	const navMain = $derived([
+		{
+			title: t("nav.product"),
+			url: "/product/manage",
+			icon: PackageIcon,
+			isActive: currentPath.startsWith("/product"),
+			items: [
+				{
+					title: t("nav.manageProduct"),
+					url: "/product/manage",
+					isActive:
+						currentPath.startsWith("/product/manage") ||
+						currentPath === "/product",
+				},
+				{
+					title: t("nav.categories"),
+					url: "/product/categories",
+					isActive: currentPath.startsWith("/product/categories"),
+				},
+				{
+					title: t("nav.merk"),
+					url: "/product/merk",
+					isActive: currentPath.startsWith("/product/merk"),
+				},
+			],
+		},
 		{
 			title: t("nav.inventory"),
 			url: "/inventory/warehouse",
@@ -40,6 +67,21 @@
 					title: t("nav.stockOpname"),
 					url: "/inventory/stock-opname",
 					isActive: currentPath.startsWith("/inventory/stock-opname"),
+				},
+			],
+		},
+		{
+			title: t("nav.user"),
+			url: "/user/manage",
+			icon: UsersIcon,
+			isActive: currentPath.startsWith("/user"),
+			items: [
+				{
+					title: t("nav.manageUser"),
+					url: "/user/manage",
+					isActive:
+						currentPath.startsWith("/user/manage") ||
+						currentPath === "/user",
 				},
 			],
 		},
@@ -85,7 +127,7 @@
 					size="lg"
 					class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 				>
-					{#snippet child({ props })}
+					{#snippet child({ props }: { props: Record<string, unknown> })}
 						<a href="/" {...props}>
 							<div
 								class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground shadow-xs"

@@ -29,10 +29,10 @@
 	<Sidebar.Menu>
 		{#each items as item (item.title)}
 			<Collapsible.Root open={item.isActive} class="group/collapsible">
-				{#snippet child({ props })}
+				{#snippet child({ props }: { props: Record<string, unknown> })}
 					<Sidebar.MenuItem {...props}>
 						<Collapsible.Trigger>
-							{#snippet child({ props })}
+							{#snippet child({ props }: { props: Record<string, unknown> })}
 								<Sidebar.MenuButton
 									{...props}
 									tooltipContent={item.title}
@@ -54,7 +54,7 @@
 										<Sidebar.MenuSubButton
 											isActive={subItem.isActive}
 										>
-											{#snippet child({ props })}
+											{#snippet child({ props }: { props: Record<string, unknown> })}
 												<a
 													href={subItem.url}
 													{...props}

@@ -40,7 +40,15 @@
 		rowClass?: string | ((item: T, index: number) => string);
 		onRowClick?: (item: T, index: number) => void;
 		cell?: Snippet<
-			[{ item: T; column: DataTableColumn<T>; index: number }]
+			[
+				{
+					item: T;
+					column: DataTableColumn<T>;
+					index: number;
+					isExpanded?: boolean;
+					toggleExpand?: () => void;
+				},
+			]
 		>;
 		emptySnippet?: Snippet;
 		toolbarSnippet?: Snippet;
@@ -56,6 +64,12 @@
 		selectedLabel?: string;
 		deselectLabel?: string;
 		deleteLabel?: string;
+
+		expandedRowSnippet?: Snippet<
+			[{ item: T; index: number; isExpanded: boolean; toggle: () => void }]
+		>;
+		expandedIds?: (string | number)[];
+		onExpandedChange?: (expandedIds: (string | number)[]) => void;
 	}
 
 	let {
@@ -89,7 +103,19 @@
 		selectedLabel,
 		deselectLabel,
 		deleteLabel,
+		expandedRowSnippet,
+		expandedIds = $bindable([]),
+		onExpandedChange,
 	}: Props = $props();
+
+	function toggleExpandItem(key: string | number) {
+		if (expandedIds.includes(key)) {
+			expandedIds = expandedIds.filter((id) => id !== key);
+		} else {
+			expandedIds = [...expandedIds, key];
+		}
+		onExpandedChange?.(expandedIds);
+	}
 
 	const effectiveSelectedLabel = $derived(
 		selectedLabel ??
@@ -396,10 +422,12 @@
 					{#each paginatedData as item, rowIndex (getItemKey(item, rowIndex))}
 						{@const itemKey = getItemKey(item, rowIndex)}
 						{@const isSelected = selectable && selectedIds.includes(itemKey)}
+						{@const isExpanded = expandedIds.includes(itemKey)}
 						<Table.Row
 							class={cn(
 								"border-b border-border/50 hover:bg-muted/40 transition-colors",
 								isSelected && "bg-primary/5 dark:bg-primary/10",
+								isExpanded && "bg-muted/20 dark:bg-muted/30",
 								typeof rowClass === "function"
 									? rowClass(item, rowIndex)
 									: rowClass,
@@ -437,6 +465,8 @@
 											item,
 											column: col,
 											index: rowIndex,
+											isExpanded,
+											toggleExpand: () => toggleExpandItem(itemKey),
 										})}
 									{:else if col.accessorFn}
 										{col.accessorFn(item)}
@@ -446,6 +476,21 @@
 								</Table.Cell>
 							{/each}
 						</Table.Row>
+						{#if expandedRowSnippet && isExpanded}
+							<Table.Row class="bg-muted/10 dark:bg-muted/25 border-b border-border/60 hover:bg-muted/15 transition-colors">
+								<Table.Cell
+									colspan={columns.length + (selectable ? 1 : 0)}
+									class="p-0"
+								>
+									{@render expandedRowSnippet({
+										item,
+										index: rowIndex,
+										isExpanded,
+										toggle: () => toggleExpandItem(itemKey),
+									})}
+								</Table.Cell>
+							</Table.Row>
+						{/if}
 					{/each}
 				{/if}
 			</Table.Body>

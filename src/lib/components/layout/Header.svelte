@@ -16,6 +16,32 @@
 	const breadcrumbItems = $derived.by(() => {
 		if (isRoot) return [];
 
+		if (currentPath.startsWith("/product")) {
+			if (currentPath.startsWith("/product/manage/create")) {
+				return [
+					{ label: t("nav.product"), href: "/product/manage" },
+					{ label: t("nav.manageProduct"), href: "/product/manage" },
+					{ label: t("product.create.title") },
+				];
+			}
+			if (currentPath.startsWith("/product/categories")) {
+				return [
+					{ label: t("nav.product"), href: "/product/manage" },
+					{ label: t("nav.categories") },
+				];
+			}
+			if (currentPath.startsWith("/product/merk")) {
+				return [
+					{ label: t("nav.product"), href: "/product/manage" },
+					{ label: t("nav.merk") },
+				];
+			}
+			return [
+				{ label: t("nav.product"), href: "/product/manage" },
+				{ label: t("nav.manageProduct") },
+			];
+		}
+
 		if (currentPath.startsWith("/inventory")) {
 			let subPage = t("nav.warehouse");
 			if (currentPath.startsWith("/inventory/stock-transfer")) {
@@ -27,7 +53,15 @@
 			}
 			return [
 				{ label: t("nav.inventory"), href: "/inventory/warehouse" },
-				{ label: subPage }
+				{ label: subPage },
+			];
+		}
+
+		if (currentPath.startsWith("/user")) {
+			let subPage = t("nav.manageUser");
+			return [
+				{ label: t("nav.user"), href: "/user/manage" },
+				{ label: subPage },
 			];
 		}
 
@@ -42,7 +76,7 @@
 			}
 			return [
 				{ label: t("nav.settings"), href: "/settings/general" },
-				{ label: subPage }
+				{ label: subPage },
 			];
 		}
 
@@ -55,7 +89,7 @@
 >
 	<div class="flex items-center gap-3">
 		<Sidebar.Trigger
-			class="-ms-1 size-9 rounded-lg border border-border/70 bg-white dark:bg-card text-foreground hover:bg-slate-50 dark:hover:bg-muted shadow-xs transition-colors"
+			class="-ms-1 size-9 dark:bg-card text-foreground hover:bg-slate-50 dark:hover:bg-muted transition-colors"
 		/>
 		<Separator.Root orientation="vertical" class="h-4 bg-border/80" />
 		<Breadcrumb.Root class="hidden sm:block">
