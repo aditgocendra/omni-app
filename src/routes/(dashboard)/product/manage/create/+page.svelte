@@ -1017,7 +1017,7 @@
 									</Label>
 									<div class="flex w-full">
 										<span
-											class="inline-flex shrink-0 items-center rounded-l-md border border-r-0 border-input bg-muted px-2.5 sm:px-3 text-xs font-mono text-muted-foreground select-none truncate max-w-[140px]"
+											class="inline-flex shrink-0 items-center rounded-l-md border border-r-0 border-input bg-muted px-2.5 sm:px-3 text-xs font-mono text-muted-foreground select-none truncate max-w-35"
 											title={formattedSkuPrefix}
 										>
 											{formattedSkuPrefix}
@@ -1283,7 +1283,7 @@
 											</Label>
 											<div class="flex w-full">
 												<span
-													class="inline-flex shrink-0 items-center rounded-l-md border border-r-0 border-input bg-muted px-2 sm:px-2.5 text-xs font-mono text-muted-foreground select-none truncate max-w-[130px]"
+													class="inline-flex shrink-0 items-center rounded-l-md border border-r-0 border-input bg-muted px-2 sm:px-2.5 text-xs font-mono text-muted-foreground select-none truncate max-w-32.5"
 													title={formattedSkuPrefix}
 												>
 													{formattedSkuPrefix}
