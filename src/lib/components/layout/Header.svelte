@@ -57,6 +57,19 @@
 			];
 		}
 
+		if (currentPath.startsWith("/pos")) {
+			let subPage = t("nav.posTransaction");
+			if (currentPath.startsWith("/pos/setting")) {
+				subPage = t("nav.posSetting");
+			} else if (currentPath.startsWith("/pos/transaction")) {
+				subPage = t("nav.posTransaction");
+			}
+			return [
+				{ label: t("nav.pos"), href: "/pos/transaction" },
+				{ label: subPage },
+			];
+		}
+
 		if (currentPath.startsWith("/user")) {
 			let subPage = t("nav.manageUser");
 			return [

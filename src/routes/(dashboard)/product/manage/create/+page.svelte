@@ -4,11 +4,12 @@
 	import * as Select from "$lib/components/ui/select/index.js";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
 	import { Input } from "$lib/components/ui/input/index.js";
+	import { Textarea } from "$lib/components/ui/textarea/index.js";
 	import { Label } from "$lib/components/ui/label/index.js";
 	import { Switch } from "$lib/components/ui/switch/index.js";
 	import { t } from "$lib/i18n/index.js";
 	import { goto } from "$app/navigation";
-	import { onMount, onDestroy } from "svelte";
+	import { onMount, onDestroy, untrack } from "svelte";
 	import type { ProductStatus, ProductVariant } from "$lib/types/index.js";
 
 	import PlusIcon from "@lucide/svelte/icons/plus";
@@ -91,6 +92,7 @@
 			id: "var-new-1",
 			name: "Standard - 128GB",
 			sku: "",
+			skuSuffix: "",
 			image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80",
 			stock: 25,
 			price: 12999000,
@@ -104,6 +106,7 @@
 			id: "var-new-2",
 			name: "Pro - 256GB",
 			sku: "",
+			skuSuffix: "",
 			image: "https://images.unsplash.com/photo-1591337676887-a217a6970a8a?w=600&auto=format&fit=crop&q=80",
 			stock: 25,
 			price: 14999000,
@@ -114,6 +117,12 @@
 			height: 0.8,
 		},
 	]);
+
+	const formattedSkuPrefix = $derived.by(() => {
+		const trimmed = sku.trim().toUpperCase();
+		if (!trimmed) return "SKU-";
+		return trimmed.endsWith("-") ? trimmed : `${trimmed}-`;
+	});
 
 	const weightSummary = $derived.by(() => {
 		const weights = variants
@@ -370,14 +379,35 @@
 		}
 	}
 
+	function updateVariantSku(variant: ProductVariant) {
+		const prefix = sku.trim().toUpperCase();
+		const prefixFormatted = prefix
+			? prefix.endsWith("-")
+				? prefix
+				: `${prefix}-`
+			: "";
+		const suffix = (variant.skuSuffix ?? "").trim().toUpperCase();
+		variant.sku =
+			prefixFormatted && suffix
+				? `${prefixFormatted}${suffix}`
+				: suffix || "";
+	}
+
+	function handleVariantSuffixInput(variant: ProductVariant, e: Event) {
+		const target = e.target as HTMLInputElement;
+		variant.skuSuffix = target.value.toUpperCase();
+		updateVariantSku(variant);
+	}
+
 	function applyAllBulk() {
-		const trimmedSku = bulkSku.trim();
+		const trimmedSuffix = bulkSku.trim().toUpperCase();
 		variants.forEach((v, i) => {
-			if (trimmedSku) {
-				v.sku =
+			if (trimmedSuffix) {
+				v.skuSuffix =
 					variants.length > 1
-						? `${trimmedSku}-V${i + 1}`
-						: trimmedSku;
+						? `${trimmedSuffix}-${i + 1}`
+						: trimmedSuffix;
+				updateVariantSku(v);
 			}
 			if (bulkPrice != null && !isNaN(bulkPrice)) {
 				v.price = bulkPrice;
@@ -408,29 +438,34 @@
 	function addVariant() {
 		const idx = variants.length + 1;
 		const prev = variants[variants.length - 1];
-		variants = [
-			...variants,
-			{
-				id: `var-new-${Date.now()}`,
-				name: `Model Variant ${idx}`,
-				sku: bulkSku.trim()
-					? `${bulkSku.trim()}-V${idx}`
-					: sku
-						? `${sku}-V${idx}`
-						: `VAR-${idx}`,
-				image: imageUrl,
-				stock: bulkStock != null && !isNaN(bulkStock) ? bulkStock : 10,
-				price:
-					bulkPrice != null && !isNaN(bulkPrice)
-						? bulkPrice
-						: price || 0,
-				status: "active",
-				weight: bulkWeight ?? prev?.weight ?? 200,
-				length: bulkLength ?? prev?.length ?? 15,
-				width: bulkWidth ?? prev?.width ?? 7.5,
-				height: bulkHeight ?? prev?.height ?? 1,
-			},
-		];
+		const defaultSuffix = bulkSku.trim()
+			? `${bulkSku.trim().toUpperCase()}-${idx}`
+			: `V${idx}`;
+		const prefix = sku.trim().toUpperCase();
+		const prefixFormatted = prefix
+			? prefix.endsWith("-")
+				? prefix
+				: `${prefix}-`
+			: "";
+
+		const newVariant: ProductVariant = {
+			id: `var-new-${Date.now()}`,
+			name: `Model Variant ${idx}`,
+			skuSuffix: defaultSuffix,
+			sku: prefixFormatted
+				? `${prefixFormatted}${defaultSuffix}`
+				: defaultSuffix,
+			image: imageUrl,
+			stock: bulkStock != null && !isNaN(bulkStock) ? bulkStock : 10,
+			price:
+				bulkPrice != null && !isNaN(bulkPrice) ? bulkPrice : price || 0,
+			status: "active",
+			weight: bulkWeight ?? prev?.weight ?? 200,
+			length: bulkLength ?? prev?.length ?? 15,
+			width: bulkWidth ?? prev?.width ?? 7.5,
+			height: bulkHeight ?? prev?.height ?? 1,
+		};
+		variants = [...variants, newVariant];
 	}
 
 	function removeVariant(id: string) {
@@ -446,15 +481,23 @@
 		}).format(amount);
 	}
 
-	// Auto-generate SKUs for variants when main SKU changes
+	// Synchronize variant SKUs when product SKU prefix changes
 	$effect(() => {
-		if (sku) {
-			variants.forEach((v, i) => {
-				if (!v.sku || v.sku.startsWith("VAR-")) {
-					v.sku = `${sku}-V${i + 1}`;
-				}
+		const prefix = sku.trim().toUpperCase();
+		const prefixFormatted = prefix
+			? prefix.endsWith("-")
+				? prefix
+				: `${prefix}-`
+			: "";
+		untrack(() => {
+			variants.forEach((v) => {
+				const suffix = (v.skuSuffix ?? "").trim().toUpperCase();
+				v.sku =
+					prefixFormatted && suffix
+						? `${prefixFormatted}${suffix}`
+						: suffix || "";
 			});
-		}
+		});
 	});
 
 	function handleSubmit() {
@@ -462,6 +505,16 @@
 			alert(t("product.create.nameSkuRequired"));
 			return;
 		}
+
+		// Ensure all variant SKUs have prefix and default suffix if empty
+		const prefix = sku.trim().toUpperCase();
+		const formattedPrefix = prefix.endsWith("-") ? prefix : `${prefix}-`;
+		variants.forEach((v, i) => {
+			const suffix =
+				(v.skuSuffix ?? "").trim().toUpperCase() || `V${i + 1}`;
+			v.skuSuffix = suffix;
+			v.sku = `${formattedPrefix}${suffix}`;
+		});
 
 		isSubmitting = true;
 		toastMessage = t("product.create.savedRedirecting", { name });
@@ -507,12 +560,13 @@
 		</div>
 
 		<div class="flex items-center gap-2.5">
-			<a
+			<Button.Root
+				variant="outline"
 				href="/product/manage"
-				class="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-card px-4 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+				class="h-9 px-4 text-xs font-medium cursor-pointer"
 			>
 				{t("common.cancel")}
-			</a>
+			</Button.Root>
 			<Button.Root
 				onclick={handleSubmit}
 				disabled={isSubmitting}
@@ -584,17 +638,19 @@
 						</p>
 					</div>
 
-					<button
+					<Button.Root
 						type="button"
+						variant="outline"
+						size="sm"
 						onclick={(e) => {
 							e.stopPropagation();
 							fileInputRef?.click();
 						}}
-						class="mt-1 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border text-xs font-medium text-foreground hover:bg-muted shadow-2xs transition-colors cursor-pointer"
+						class="mt-1 gap-1.5 text-xs font-medium shadow-2xs cursor-pointer"
 					>
 						<PlusIcon class="size-3.5" />
 						<span>{t("product.create.browseFiles")}</span>
-					</button>
+					</Button.Root>
 
 					<input
 						type="file"
@@ -658,29 +714,32 @@
 											>
 												{formatFileSize(img.size)}
 											</span>
-											<button
+											<Button.Root
 												type="button"
+												variant="destructive"
+												size="icon-xs"
 												onclick={(e) => {
 													e.stopPropagation();
 													removeUploadedImage(img.id);
 												}}
-												class="size-6 rounded-md bg-red-600/90 hover:bg-red-600 text-white flex items-center justify-center transition-colors cursor-pointer"
+												class="size-6 rounded-md p-0 cursor-pointer"
 												title={t(
 													"product.create.removeImage",
 												)}
 											>
 												<Trash2Icon class="size-3" />
-											</button>
+											</Button.Root>
 										</div>
 
 										{#if !img.isPrimary}
-											<button
+											<Button.Root
 												type="button"
+												size="xs"
 												onclick={(e) => {
 													e.stopPropagation();
 													setAsPrimary(img.id);
 												}}
-												class="w-full py-1 px-1.5 rounded bg-primary/90 hover:bg-primary text-[10px] font-semibold text-white transition-colors cursor-pointer flex items-center justify-center gap-1"
+												class="w-full h-6 rounded text-[10px] font-semibold text-white transition-colors cursor-pointer flex items-center justify-center gap-1"
 											>
 												<StarIcon class="size-2.5" />
 												<span
@@ -688,7 +747,7 @@
 														"product.create.setAsPrimary",
 													)}</span
 												>
-											</button>
+											</Button.Root>
 										{/if}
 									</div>
 								</div>
@@ -755,14 +814,16 @@
 								onclick={() => (isCategoryDialogOpen = true)}
 								class="h-10 w-full rounded-lg border border-border bg-card pl-3 pr-10 text-xs font-medium text-foreground shadow-xs cursor-pointer hover:border-primary/60 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-hidden transition-all truncate"
 							/>
-							<button
+							<Button.Root
+								variant="ghost"
+								size="icon-xs"
 								type="button"
 								onclick={() => (isCategoryDialogOpen = true)}
-								class="absolute right-2.5 top-1/2 -translate-y-1/2 size-6 rounded flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors cursor-pointer"
+								class="absolute right-2 top-1/2 -translate-y-1/2 size-6 rounded text-muted-foreground group-hover:text-primary transition-colors cursor-pointer p-0"
 								title={t("product.categorySelect.dialogTitle")}
 							>
 								<ChevronRightIcon class="size-4" />
-							</button>
+							</Button.Root>
 						</div>
 					</div>
 
@@ -862,13 +923,13 @@
 					>
 						{t("product.create.description")}
 					</Label>
-					<textarea
+					<Textarea
 						id="prod-description"
 						bind:value={description}
 						rows={5}
 						placeholder={t("product.create.descriptionPlaceholder")}
-						class="w-full rounded-lg border border-border bg-card p-3 text-xs text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-hidden transition-all resize-y min-h-70 shadow-xs"
-					></textarea>
+						class="w-full text-xs bg-card p-3 placeholder:text-muted-foreground/70 resize-y min-h-70 shadow-xs"
+					/>
 					<div
 						class="flex items-center justify-between text-[11px] text-muted-foreground"
 					>
@@ -954,14 +1015,22 @@
 									>
 										{t("product.create.variantSku")}
 									</Label>
-									<Input
-										type="text"
-										bind:value={bulkSku}
-										placeholder={t(
-											"product.create.bulkSkuPlaceholder",
-										)}
-										class="h-8 text-xs font-mono uppercase bg-background"
-									/>
+									<div class="flex w-full">
+										<span
+											class="inline-flex shrink-0 items-center rounded-l-md border border-r-0 border-input bg-muted px-2.5 sm:px-3 text-xs font-mono text-muted-foreground select-none truncate max-w-35"
+											title={formattedSkuPrefix}
+										>
+											{formattedSkuPrefix}
+										</span>
+										<Input
+											type="text"
+											bind:value={bulkSku}
+											placeholder={t(
+												"product.create.bulkSkuPlaceholder",
+											)}
+											class="rounded-l-none focus-visible:z-10 h-8 text-xs font-mono uppercase bg-background"
+										/>
+									</div>
 								</div>
 
 								<div>
@@ -1094,19 +1163,21 @@
 															{/if}
 														</DropdownMenu.Content>
 													</DropdownMenu.Root>
-													<button
+													<Button.Root
 														type="button"
+														variant="destructive"
+														size="icon-xs"
 														onclick={() =>
 															removeVariantImage(
 																variant.id,
 															)}
-														class="p-1 rounded bg-red-500/80 hover:bg-red-600 text-white transition-colors cursor-pointer"
+														class="size-5 rounded p-0 cursor-pointer"
 														title={t(
 															"common.delete",
 														)}
 													>
 														<XIcon class="size-3" />
-													</button>
+													</Button.Root>
 												</div>
 											{:else}
 												<DropdownMenu.Root>
@@ -1204,18 +1275,34 @@
 											/>
 										</div>
 
-										<div class="w-full sm:w-36">
+										<div class="w-full sm:w-56">
 											<Label
 												class="text-[10px] text-muted-foreground block mb-1"
 											>
 												{t("product.create.variantSku")}
 											</Label>
-											<Input
-												type="text"
-												bind:value={variant.sku}
-												placeholder="e.g. SKU-V1"
-												class="h-8.5 text-xs font-mono uppercase"
-											/>
+											<div class="flex w-full">
+												<span
+													class="inline-flex shrink-0 items-center rounded-l-md border border-r-0 border-input bg-muted px-2 sm:px-2.5 text-xs font-mono text-muted-foreground select-none truncate max-w-32.5"
+													title={formattedSkuPrefix}
+												>
+													{formattedSkuPrefix}
+												</span>
+												<Input
+													type="text"
+													value={variant.skuSuffix ??
+														""}
+													oninput={(e) =>
+														handleVariantSuffixInput(
+															variant,
+															e,
+														)}
+													placeholder={t(
+														"product.create.bulkSkuPlaceholder",
+													)}
+													class="rounded-l-none focus-visible:z-10 h-8.5 text-xs font-mono uppercase bg-background"
+												/>
+											</div>
 										</div>
 
 										<div class="w-full sm:w-28">
@@ -1251,15 +1338,17 @@
 											/>
 										</div>
 
-										<button
+										<Button.Root
 											type="button"
+											variant="ghost"
+											size="icon-sm"
 											onclick={() =>
 												removeVariant(variant.id)}
-											class="p-1.5 text-muted-foreground hover:text-red-500 rounded-md hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer shrink-0 self-end sm:self-auto"
+											class="text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-md transition-colors cursor-pointer shrink-0 self-end sm:self-auto"
 											title={t("common.delete")}
 										>
 											<Trash2Icon class="size-4" />
-										</button>
+										</Button.Root>
 									</div>
 								</div>
 							{/each}
@@ -1762,13 +1851,15 @@
 					>
 					<div class="grid grid-cols-2 gap-1.5">
 						{#each imagePresets as preset}
-							<button
+							<Button.Root
 								type="button"
+								variant="outline"
+								size="sm"
 								onclick={() => (imageUrl = preset.url)}
-								class="text-left px-2 py-1.5 rounded-md border border-border/60 hover:border-primary text-[11px] font-medium text-foreground hover:bg-muted transition-colors cursor-pointer truncate"
+								class="justify-start h-8 px-2 text-[11px] font-medium text-foreground hover:bg-muted transition-colors cursor-pointer truncate"
 							>
 								{preset.label}
-							</button>
+							</Button.Root>
 						{/each}
 					</div>
 				</div>
