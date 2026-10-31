@@ -138,3 +138,40 @@ export interface ProductMerkRecord {
 	createdAt: string;
 	origin?: string;
 }
+
+export interface PosTransactionItem {
+	productId: string;
+	name: string;
+	sku: string;
+	price: number;
+	qty: number;
+	total: number;
+	image?: string;
+}
+
+export type PaymentMethod = "Cash" | "QRIS" | "Debit Card" | "Credit Card";
+
+export interface PosTransactionRecord {
+	id: string;
+	transactionId: string; // e.g. "ID20261030001"
+	date: string; // e.g. "30/10/2026 14:35"
+	qty: number; // e.g. 2
+	totalPayment: number; // e.g. 200000
+	warehouse: string;
+	cashierName: string;
+	paymentMethod: PaymentMethod;
+	items: PosTransactionItem[];
+	notes?: string;
+}
+
+export interface PosSettingConfig {
+	prefix: string;
+	datePattern: "YYYYMMDD" | "YYMMDD" | "YYYYMM";
+	sequenceDigits: number; // 3, 4, 5
+	separator: "" | "-" | "/";
+	counterResetFrequency: "daily" | "monthly" | "yearly" | "never";
+	defaultWarehouse: string;
+	defaultTaxRate: number;
+	autoPrintReceipt: boolean;
+	allowManualDiscount: boolean;
+}

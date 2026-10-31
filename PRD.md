@@ -142,6 +142,7 @@ Pondasi layout dashboard dibangun di atas blok **`sidebar-07`** dari `shadcn-sve
   - Navigasi menu utama:
     - *Product* (Manage Product: `/product/manage`, Categories: `/product/categories`, Merk: `/product/merk`)
     - *Inventory* (Warehouse: `/inventory/warehouse`, Stock Transfer: `/inventory/stock-transfer`, Stock Opname: `/inventory/stock-opname`)
+    - *Point Of Sale* (Transaction: `/pos/transaction`, Setting: `/pos/setting`)
     - *User* (Manage User: `/user/manage`)
     - *Settings* (General: `/settings/general`, Account: `/settings/account`, Notification: `/settings/notifications`)
   - Fitur collapsible sub-menu dan status link aktif berbasis URL SvelteKit.
@@ -382,6 +383,79 @@ Modul Product mengelola katalog produk omni-channel, varian produk terperinci, k
   - **Minimum Per Page adalah 10** (`perPage = 10`).
   - Opsi pilihan pagination: `10, 20, 50, 100`.
 
+### 6.7 Module 6: Point of Sale (POS) System (`/pos`)
+Modul Point of Sale (POS) mengelola pencatatan transaksi kasir toko fisik (offline store), riwayat struk penjualan, konfigurasi format penomoran ID transaksi otomatis, serta antarmuka layar register kasir mandiri (*dedicated cashier screen*).
+
+#### 6.7.1 Sub-Module: Transaction (`/pos/transaction`)
+- **Tujuan:** Pemantauan data riwayat transaksi checkout kasir, pencarian ID struk, audit kuantitas produk terjual, dan rekapitulasi pembayaran per fasilitas gudang/toko.
+- **Menu Hirarki:** `Point Of Sale` (menu utama) -> `Transaction` (sub menu, path: `/pos/transaction`).
+- **Header & Action Bar:**
+  - Layout: `justify-between items-center`.
+  - Konten: Judul modul (*POS Transactions / Transaksi POS*) dan Sub-judul (*kegunaan/deskripsi operasional kasir*).
+  - Tombol Utama: `Cashier / Kasir`. **Catatan Penting:** Tombol cashier mengarah langsung ke page dedicated `/cashier` (di luar dashboard dan bukan modal dialog).
+- **Search & Filter Controls:**
+  - Ukuran: Full width (`w-full`) responsif.
+  - Komponen:
+    - Search input: Live search spesifik berdasarkan `Transaction ID` (contoh: *ID20261030001*) dengan clear icon (`XIcon`).
+    - Filter dropdown Gudang: Filter berdasarkan fasilitas gudang/toko (*All Warehouses*, *Gudang A*, *Gudang B*, *Gudang C*, *Gudang D*).
+    - Tombol Reset: Mereset seluruh parameter pencarian, filter gudang, dan pagination ke nilai awal.
+- **Spesifikasi Tabel Data:**
+  - `checkbox`: Checkbox seleksi baris untuk operasi massal (*Bulk Delete*), dilengkapi select-all di table header.
+  - `Transaction ID`: Kode identifikasi unik transaksi (contoh: *ID20261030001*), ditampilkan dengan font-mono dan ikon receipt.
+  - `Date`: Tanggal dan jam pelaksanaan transaksi (format `DD/MM/YYYY HH:mm`, contoh: *30/10/2026 14:35*). Kolom ini memiliki indikator sortable (Ascending / Descending) pada table header.
+  - `Qty`: Kuantitas total item produk yang dibeli dalam transaksi (contoh: *2* atau *2 item*).
+  - `Total Payment`: Total nilai nominal pembayaran transaksi (format Rupiah, contoh: *Rp 200.000*), ditampilkan dengan font-mono bold beserta label metode pembayaran.
+  - `Actions`: Tombol ikon aksi more (`EllipsisVerticalIcon`) dengan dropdown menu:
+    - **Detail:** Membuka pop-up modal rincian transaksi (daftar item produk yang dibeli beserta gambar thumbnail, harga satuan, subtotal, nama kasir, gudang, dan catatan transaksi).
+    - **Edit:** Membuka formulir modal perbaruan data alokasi gudang, metode pembayaran, atau catatan transaksi.
+    - **Delete:** Menghapus data rekaman transaksi dengan konfirmasi (`ConfirmDialog`).
+- **Spesifikasi Sorting:**
+  - Header kolom yang mendukung sorting: **Date** (Tanggal Transaksi).
+- **Spesifikasi Pagination:**
+  - **Minimum Per Page adalah 10** (`perPage = 10`).
+  - Opsi pilihan pagination: `10, 20, 50, 100`.
+
+#### 6.7.2 Sub-Module: Setting (`/pos/setting`)
+- **Tujuan:** Konfigurasi format nomor struk transaksi otomatis dan parameter default mesin register kasir.
+- **Menu Hirarki:** `Point Of Sale` (menu utama) -> `Setting` (sub menu, path: `/pos/setting`).
+- **Fitur Utama:**
+  - **Format Transaction ID:**
+    - Live Interactive Preview: Menampilkan contoh hasil generate Transaction ID secara real-time (contoh: `ID20261030001`) dengan tombol salin (copy).
+    - Prefix: Input teks kode awalan (contoh: *ID*, *TRX*, *POS*).
+    - Pola Token Tanggal: Pilihan token tanggal (*YYYYMMDD* e.g. 20261030, *YYMMDD* e.g. 261030, *YYYYMM* e.g. 202610).
+    - Jumlah Digit Nomor Urut: Pilihan padding digit counter (*3 Digit: 001*, *4 Digit: 0001*, *5 Digit: 00001*).
+    - Pemisah (Separator): Pilihan pemisah antar segmen (*Tanpa Pemisah* e.g. `ID20261030001`, *Strip (-)* e.g. `ID-20261030-001`, *Slash (/)* e.g. `ID/20261030/001`).
+    - Jadwal Reset Counter: Frekuensi reset nomor urut (*Daily*, *Monthly*, *Yearly*, *Never*).
+  - **Preferensi Register & Kasir:**
+    - Pemilihan Gudang Default transaksi kasir.
+    - Nilai tarif pajak default (PPN 11%).
+    - Toggle otomatis cetak struk (*Auto-print receipt*).
+    - Toggle izin diskon manual kasir per item.
+  - **Aksi:** Tombol *Save POS Settings* dengan feedback toast notification dan tombol *Reset to Defaults*.
+
+#### 6.7.3 Dedicated Standalone Page: Cashier (`/cashier`)
+- **Tujuan:** Antarmuka layar kasir mandiri (*fullscreen distraction-free register*) untuk operasional checkout cepat di meja kasir toko, berada di luar layout dashboard utama.
+- **Navigasi & Header:**
+  - Tombol kembali ke dashboard (*Back to Dashboard* mengarah ke `/pos/transaction`).
+  - Branding kasir toko (*Cronsyst POS • Register #01 • Warehouse A*).
+  - Jam digital real-time dan nama operator kasir aktif.
+  - Pengalih bahasa (EN/ID) dan toggle tema (Light/Dark).
+- **Area Katalog Produk (Sisi Kiri/Tengah):**
+  - Kolom pencarian instan berdasarkan nama produk atau SKU.
+  - Filter horizontal kategori produk (*All Categories*, *Gadgets*, *Computers*, *Fashion*, *Home Appliances*).
+  - Grid kartu produk responsif dengan thumbnail gambar, SKU, nama produk, stok tersedia, dan harga Rupiah.
+  - Interaksi sekali klik untuk menambahkan produk ke keranjang belanja (cart).
+- **Area Keranjang & Pembayaran (Sisi Kanan):**
+  - Rincian item pesanan aktif dengan kontrol kuantitas (`+` / `-` / hapus item).
+  - Kalkulasi otomatis Subtotal, Pajak (PPN 11%), dan Grand Total.
+  - Pemilih metode pembayaran: *QRIS*, *Cash (Tunai)*, *Debit Card*, *Credit Card*.
+  - Kalkulasi uang diterima (*Cash Received*) dan nominal kembalian (*Change Due*).
+  - Tombol besar eksekusi checkout (*Charge / Pay*).
+- **Modal Struk Pembayaran Sukses:**
+  - Menampilkan nomor transaksi otomatis sesuai format POS setting (contoh: *ID20261030001*).
+  - Preview struk digital lengkap dengan rincian belanja, pajak, dan metode bayar.
+  - Tombol cetak struk (*Print Receipt*) dan tombol transaksi baru (*New Order*).
+
 ---
 
 ## 7. Recommended Directory Structure
@@ -395,11 +469,19 @@ omni-app/
 │   ├── routes/
 │   │   ├── +layout.svelte        # Root layout (Theme provider, i18n store, font wrappers)
 │   │   ├── +layout.ts            # Client load settings
+│   │   ├── cashier/
+│   │   │   └── +page.svelte      # Dedicated Standalone Cashier Register Page (Non-dashboard)
 │   │   ├── (dashboard)/
 │   │   │   ├── +layout.svelte    # Dashboard Shell (Sidebar, Header, Content Area)
 │   │   │   ├── +page.svelte      # Overview / Root Dashboard (/)
 │   │   │   ├── settings/
 │   │   │   │   └── +page.svelte  # Theme, Language, Profile settings
+│   │   │   ├── pos/
+│   │   │   │   ├── +page.ts      # Redirect ke /pos/transaction
+│   │   │   │   ├── transaction/
+│   │   │   │   │   └── +page.svelte # POS Transactions (Table, Date Sort, Warehouse Filter, Cashier Link)
+│   │   │   │   └── setting/
+│   │   │   │       └── +page.svelte # POS Settings (Transaction ID Format, Live Preview, Cashier Preferences)
 │   │   │   ├── product/
 │   │   │   │   ├── +page.ts      # Redirect ke /product/manage
 │   │   │   │   ├── manage/
@@ -590,6 +672,10 @@ AI Agent harus mengeksekusi project ini secara bertahap dengan urutan logis beri
    - **Manage Product (`/product/manage` & `/product/manage/create`):** Tabel produk master, thumbnail gambar, SKU, stok, status toggle switch, sorting Name & CreatedAt, baris collapsible varian produk terperinci, filter multi-dimensi (kategori, merk, gudang), pagination min 10, serta halaman dedicated pembuatan produk baru (`/product/manage/create`).
    - **Categories (`/product/categories`):** Tabel kategori retail terstruktur, kode prefix 3 huruf (e.g. ELC), jumlah produk terasosiasi, sorting Name & CreatedAt, pencarian nama, pagination min 10, serta modal manajemen kategori.
    - **Merk (`/product/merk`):** Tabel brand manufaktur dan vendor, kuantitas produk, sorting Name & CreatedAt, pencarian nama, pagination min 10, serta modal registrasi merk.
+8. **Point of Sale (POS) Module (`/pos` & `/cashier`):**
+   - **POS Transactions (`/pos/transaction`):** Tabel riwayat transaksi kasir, pencarian Transaction ID, filter gudang, sorting `Date`, checkbox seleksi baris, kuantitas item, total pembayaran Rupiah, aksi dropdown (Detail, Edit, Delete), pagination min 10, serta tombol navigasi menuju `/cashier`.
+   - **POS Setting (`/pos/setting`):** Konfigurasi generator Transaction ID (prefix, format token tanggal, panjang digit counter, separator, jadwal reset), live interactive preview, dan preferensi register kasir default.
+   - **Dedicated Standalone Cashier (`/cashier`):** Antarmuka register kasir mandiri bebas distraksi di luar dashboard, pencarian produk cepat, katalog per kategori, keranjang belanja interaktif, kalkulasi PPN & kembalian, ragam metode pembayaran (Cash, QRIS, Debit, Credit), dan generator struk transaksi.
 
 ### Phase 7: Code Review, Cleanliness & Verification
 1. Jalankan `bun run check` (Svelte/TypeScript verification) untuk memastikan tidak ada type error.

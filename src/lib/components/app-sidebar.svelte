@@ -1,6 +1,7 @@
 <script lang="ts">
 	import BoxIcon from "@lucide/svelte/icons/box";
 	import PackageIcon from "@lucide/svelte/icons/package";
+	import StoreIcon from "@lucide/svelte/icons/store";
 	import UsersIcon from "@lucide/svelte/icons/users";
 	import SettingsIcon from "@lucide/svelte/icons/settings";
 	import GalleryVerticalEndIcon from "@lucide/svelte/icons/gallery-vertical-end";
@@ -67,6 +68,26 @@
 					title: t("nav.stockOpname"),
 					url: "/inventory/stock-opname",
 					isActive: currentPath.startsWith("/inventory/stock-opname"),
+				},
+			],
+		},
+		{
+			title: t("nav.pos"),
+			url: "/pos/transaction",
+			icon: StoreIcon,
+			isActive: currentPath.startsWith("/pos"),
+			items: [
+				{
+					title: t("nav.posTransaction"),
+					url: "/pos/transaction",
+					isActive:
+						currentPath.startsWith("/pos/transaction") ||
+						currentPath === "/pos",
+				},
+				{
+					title: t("nav.posSetting"),
+					url: "/pos/setting",
+					isActive: currentPath.startsWith("/pos/setting"),
 				},
 			],
 		},
