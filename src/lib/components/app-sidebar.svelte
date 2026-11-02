@@ -2,6 +2,7 @@
 	import BoxIcon from "@lucide/svelte/icons/box";
 	import PackageIcon from "@lucide/svelte/icons/package";
 	import StoreIcon from "@lucide/svelte/icons/store";
+	import ShoppingBagIcon from "@lucide/svelte/icons/shopping-bag";
 	import UsersIcon from "@lucide/svelte/icons/users";
 	import SettingsIcon from "@lucide/svelte/icons/settings";
 	import GalleryVerticalEndIcon from "@lucide/svelte/icons/gallery-vertical-end";
@@ -88,6 +89,36 @@
 					title: t("nav.posSetting"),
 					url: "/pos/setting",
 					isActive: currentPath.startsWith("/pos/setting"),
+				},
+			],
+		},
+		{
+			title: t("nav.ecommerce"),
+			url: "/ecommerce/orders",
+			icon: ShoppingBagIcon,
+			isActive: currentPath.startsWith("/ecommerce"),
+			items: [
+				{
+					title: t("nav.ecommerceOrders"),
+					url: "/ecommerce/orders",
+					isActive:
+						currentPath.startsWith("/ecommerce/orders") ||
+						currentPath === "/ecommerce",
+				},
+				{
+					title: t("nav.ecommerceCopy"),
+					url: "/ecommerce/copy",
+					isActive: currentPath.startsWith("/ecommerce/copy"),
+				},
+				{
+					title: t("nav.ecommerceIntegration"),
+					url: "/ecommerce/integration",
+					isActive: currentPath.startsWith("/ecommerce/integration"),
+				},
+				{
+					title: t("nav.ecommerceSetting"),
+					url: "/ecommerce/setting",
+					isActive: currentPath.startsWith("/ecommerce/setting"),
 				},
 			],
 		},

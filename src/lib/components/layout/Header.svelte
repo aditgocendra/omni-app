@@ -70,6 +70,27 @@
 			];
 		}
 
+		if (currentPath.startsWith("/ecommerce")) {
+			let subPage = t("nav.ecommerceOrders");
+			if (currentPath.startsWith("/ecommerce/orders/mass-shipping")) {
+				return [
+					{ label: t("nav.ecommerce"), href: "/ecommerce/orders" },
+					{ label: t("nav.ecommerceOrders"), href: "/ecommerce/orders" },
+					{ label: t("ecommerce.massShipping.title") },
+				];
+			} else if (currentPath.startsWith("/ecommerce/copy")) {
+				subPage = t("nav.ecommerceCopy");
+			} else if (currentPath.startsWith("/ecommerce/integration")) {
+				subPage = t("nav.ecommerceIntegration");
+			} else if (currentPath.startsWith("/ecommerce/setting")) {
+				subPage = t("nav.ecommerceSetting");
+			}
+			return [
+				{ label: t("nav.ecommerce"), href: "/ecommerce/orders" },
+				{ label: subPage },
+			];
+		}
+
 		if (currentPath.startsWith("/user")) {
 			let subPage = t("nav.manageUser");
 			return [
