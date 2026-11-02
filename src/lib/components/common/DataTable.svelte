@@ -66,7 +66,14 @@
 		deleteLabel?: string;
 
 		expandedRowSnippet?: Snippet<
-			[{ item: T; index: number; isExpanded: boolean; toggle: () => void }]
+			[
+				{
+					item: T;
+					index: number;
+					isExpanded: boolean;
+					toggle: () => void;
+				},
+			]
 		>;
 		expandedIds?: (string | number)[];
 		onExpandedChange?: (expandedIds: (string | number)[]) => void;
@@ -121,10 +128,10 @@
 		selectedLabel ??
 			(selectedIds.length > 1
 				? t("common.selectedItems")
-				: t("common.selectedItem"))
+				: t("common.selectedItem")),
 	);
 	const effectiveDeselectLabel = $derived(
-		deselectLabel ?? t("common.deselect")
+		deselectLabel ?? t("common.deselect"),
 	);
 	const effectiveDeleteLabel = $derived(deleteLabel ?? t("common.delete"));
 
@@ -232,7 +239,9 @@
 
 	function toggleSelectAll() {
 		if (isAllSelected) {
-			selectedIds = selectedIds.filter((id) => !pageItemKeys.includes(id));
+			selectedIds = selectedIds.filter(
+				(id) => !pageItemKeys.includes(id),
+			);
 		} else {
 			const set = new Set([...selectedIds, ...pageItemKeys]);
 			selectedIds = Array.from(set);
@@ -278,7 +287,8 @@
 					{selectedIds.length}
 				</span>
 				<span class="font-medium text-foreground">
-					{selectedIds.length} {effectiveSelectedLabel}
+					{selectedIds.length}
+					{effectiveSelectedLabel}
 				</span>
 				<button
 					type="button"
@@ -305,7 +315,9 @@
 						class="h-8 gap-1.5 px-3 bg-red-600 hover:bg-red-700 text-white font-semibold text-xs cursor-pointer shadow-xs transition-colors"
 					>
 						<Trash2Icon class="size-3.5 text-white" />
-						<span>{effectiveDeleteLabel} ({selectedIds.length})</span>
+						<span
+							>{effectiveDeleteLabel} ({selectedIds.length})</span
+						>
 					</Button.Root>
 				{/if}
 			</div>
@@ -337,6 +349,7 @@
 								col.align === "right" && "text-right",
 								col.align === "center" && "text-center",
 								col.headerClass,
+								col.class,
 							)}
 						>
 							{#if col.sortable}
@@ -378,11 +391,13 @@
 					{#each Array(perPage > 5 ? 5 : perPage) as _, i}
 						<Table.Row class="border-b border-border/40">
 							{#if selectable}
-								<Table.Cell class="w-12 px-4 py-3.5 text-center">
-									<div class="flex items-center justify-center">
-										<Skeleton.Root
-											class="size-4 rounded"
-										/>
+								<Table.Cell
+									class="w-12 px-4 py-3.5 text-center"
+								>
+									<div
+										class="flex items-center justify-center"
+									>
+										<Skeleton.Root class="size-4 rounded" />
 									</div>
 								</Table.Cell>
 							{/if}
@@ -421,7 +436,8 @@
 				{:else}
 					{#each paginatedData as item, rowIndex (getItemKey(item, rowIndex))}
 						{@const itemKey = getItemKey(item, rowIndex)}
-						{@const isSelected = selectable && selectedIds.includes(itemKey)}
+						{@const isSelected =
+							selectable && selectedIds.includes(itemKey)}
 						{@const isExpanded = expandedIds.includes(itemKey)}
 						<Table.Row
 							class={cn(
@@ -440,10 +456,13 @@
 									class="w-12 px-4 py-3.5 text-center"
 									onclick={(e) => e.stopPropagation()}
 								>
-									<div class="flex items-center justify-center">
+									<div
+										class="flex items-center justify-center"
+									>
 										<Checkbox
 											checked={isSelected}
-											onCheckedChange={() => toggleSelectItem(itemKey)}
+											onCheckedChange={() =>
+												toggleSelectItem(itemKey)}
 											aria-label="Select row"
 										/>
 									</div>
@@ -456,6 +475,7 @@
 										col.align === "right" && "text-right",
 										col.align === "center" && "text-center",
 										col.cellClass,
+										col.class,
 									)}
 								>
 									{#if col.cell}
@@ -466,7 +486,8 @@
 											column: col,
 											index: rowIndex,
 											isExpanded,
-											toggleExpand: () => toggleExpandItem(itemKey),
+											toggleExpand: () =>
+												toggleExpandItem(itemKey),
 										})}
 									{:else if col.accessorFn}
 										{col.accessorFn(item)}
@@ -477,9 +498,12 @@
 							{/each}
 						</Table.Row>
 						{#if expandedRowSnippet && isExpanded}
-							<Table.Row class="bg-muted/10 dark:bg-muted/25 border-b border-border/60 hover:bg-muted/15 transition-colors">
+							<Table.Row
+								class="bg-muted/10 dark:bg-muted/25 border-b border-border/60 hover:bg-muted/15 transition-colors"
+							>
 								<Table.Cell
-									colspan={columns.length + (selectable ? 1 : 0)}
+									colspan={columns.length +
+										(selectable ? 1 : 0)}
 									class="p-0"
 								>
 									{@render expandedRowSnippet({
@@ -525,8 +549,11 @@
 							> entries
 						</span>
 						{#if selectable && selectedIds.length > 0}
-							<span class="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
-								{selectedIds.length} {selectedLabel}
+							<span
+								class="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary"
+							>
+								{selectedIds.length}
+								{selectedLabel}
 							</span>
 						{/if}
 					</div>

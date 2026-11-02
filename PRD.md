@@ -456,6 +456,78 @@ Modul Point of Sale (POS) mengelola pencatatan transaksi kasir toko fisik (offli
   - Preview struk digital lengkap dengan rincian belanja, pajak, dan metode bayar.
   - Tombol cetak struk (*Print Receipt*) dan tombol transaksi baru (*New Order*).
 
+### 6.8 Modul E-Commerce
+
+Modul E-Commerce menyediakan integrasi multi-channel marketplace terpusat untuk memproses pesanan masuk, mengatur penjemputan/pengiriman kurir (instant, reguler, hemat), pengiriman massal (*mass shipping*), duplikasi katalog produk antar-kanal (*product copy*), manajemen koneksi otorisasi toko (*store integration*), serta konfigurasi webhook dan aturan pemotongan stok otomatis.
+
+#### 6.8.1 Sub-Module: Orders (`/ecommerce/orders`)
+- **Tujuan:** Manajemen operasional pesanan dari marketplace (Shopee, Tokopedia, TikTok Shop, dll.), penjadwalan pickup instan, drop-off kurir reguler, dan pencetakan label resi pengiriman.
+- **Menu Hirarki:** `E-Commerce` (menu utama) -> `Orders` (sub menu, path: `/ecommerce/orders`).
+- **Komponen Header & Toolbar:**
+  - `[Title Modul & Subjudul - Tombol Pengiriman Massal]`: Layout flex `justify-between items-center`. Tombol *Pengiriman Massal* mengarahkan pengguna ke halaman dedicated `/ecommerce/orders/mass-shipping`.
+  - `[Search Dropdown + Input + Filter Shopee Account + Filter Status + Tombol Reset]`: Lebar penuh (full size).
+    - **Search Dropdown Type:** Pilihan tipe pencarian (*Order Number* atau *Product Name*).
+    - **Input Kolom Pencarian:** Teks kata kunci pencarian.
+    - **Tombol Cari (Search Button):** Request pencarian baru dikirimkan hanya ketika pengguna menekan tombol ini atau menekan `Enter`.
+    - **Filter Shopee Account:** Pilihan akun toko marketplace (*All Shopee Accounts*, *Official Store Jakarta*, *Surabaya Branch Store*, *Bandung Lifestyle Shop*).
+    - **Filter Status Pesanan:** Pilihan status (*Semua*, *Perlu Diproses*, *Telah Diproses*).
+    - **Tombol Reset:** Mengembalikan seluruh filter ke kondisi bawaan.
+- **Spesifikasi Kolom Tabel Data:**
+  - `Checkbox`: Checkbox seleksi baris untuk operasi massal, dilengkapi select-all di header.
+  - `Product`: Berisi foto produk utama, nama produk, nomor pesanan, kanal marketplace, dan varian produk (contoh: *Variant : 1 Meter*). Detail pemesanan lengkap dapat diakses melalui tombol Icon Detail.
+  - `Status Shipping`:
+    - Status Pengiriman (*Perlu Diproses* / *Telah Diproses*).
+    - Peringatan Batas Waktu: *"Kirim / Pickup sebelum 02/11/2026"* (EN: *"Ship / Pickup before 02/11/2026"*).
+  - `Shipping Services`: Jenis layanan kurir pengiriman (*Instant*, *Instant Prioritas*, *Hemat*, atau *Reguler*) beserta nama armada kurir (*GrabExpress*, *GoSend*, *SPX*, *J&T*, *SiCepat*, *Anteraja*).
+  - `Revenue`: Total nilai pesanan (format Rupiah) dan kuantitas item.
+  - `Date`: Tanggal pesanan (format `DD/MM/YYYY`).
+  - `Actions`:
+    - Jika layanan **Instant** atau **Instant Prioritas** dan belum diatur: Tombol **Atur Pickup** (membuka modal penjemputan kurir).
+    - Jika layanan **Reguler** atau **Hemat** dan belum diatur: Tombol **Atur Pengiriman** (membuka modal serah terima drop-off gerai / pickup kurir).
+    - Jika sudah diatur / Telah Diproses: Berubah menjadi tombol **Icon Detail** (membuka modal detail lengkap) dan tombol **Cetak Label** (membuka pratinjau cetak resi thermal A6).
+- **Spesifikasi Tampilan Baris Pesanan:**
+  - Setiap baris pesanan menampilkan informasi produk utama dan variannya secara ringkas dan rapi tanpa collapsible row. Rincian seluruh item/varian produk, catatan pembeli (*buyer notes*), dan alamat tujuan pengiriman ditampilkan melalui modal pop-up **Detail Pesanan**.
+- **Spesifikasi Sorting:**
+  - Header kolom yang mendukung sorting: **Date**, **Status Shipping**, dan **Revenue**.
+- **Spesifikasi Pagination:**
+  - Minimum Per Page adalah 10 (`perPage = 10`), dengan opsi `10, 20, 50`.
+
+#### 6.8.2 Sub-Module: Dedicated Mass Shipping (`/ecommerce/orders/mass-shipping`)
+- **Tujuan:** Pemrosesan pengiriman puluhan hingga ratusan pesanan marketplace secara serentak dalam satu alur kerja terpadu.
+- **Alur Kerja:**
+  - Langkah 1: Seleksi pesanan yang berstatus *Perlu Diproses*.
+  - Langkah 2: Pemilihan metode serah terima massal (*Bulk Drop-off ke Gerai* vs *Bulk Pickup ke Gudang Pusat*).
+  - Langkah 3: Eksekusi pembuatan nomor resi otomatis secara batch dan pencetakan semua label resi (PDF).
+
+#### 6.8.3 Sub-Module: Copy Product (`/ecommerce/copy`)
+- **Tujuan:** Fitur duplikasi dan sinkronisasi katalog produk dari e-commerce ke sistem master Product ataupun sebaliknya antar-toko marketplace.
+- **Menu Hirarki:** `E-Commerce` -> `Copy` (path: `/ecommerce/copy`).
+- **Spesifikasi Tabs Navigasi:**
+  - **Tab Product:** Tabel katalog produk sumber yang siap disalin, dengan tombol *Salin ke E-Commerce* dan modal pemilihan toko kanal tujuan.
+  - **Tab Draft:** Tabel produk hasil duplikasi yang berada dalam tahap review/draft sebelum dipublikasikan ke etalase toko tujuan, dilengkapi tombol *Publikasikan Draft*, *Edit*, dan *Hapus*.
+  - **Tab Copied:** Tabel riwayat produk yang telah sukses disalin dan tersinkronisasi aktif dengan marketplace, dilengkapi tombol *Sinkronkan Ulang*.
+
+#### 6.8.4 Sub-Module: Integration (`/ecommerce/integration`)
+- **Tujuan:** Manajemen otorisasi dan koneksi multi-toko dengan berbagai platform e-commerce (Shopee, Tokopedia, TikTok Shop, Lazada, Blibli).
+- **Menu Hirarki:** `E-Commerce` -> `Integration` (path: `/ecommerce/integration`).
+- **Fitur Utama:**
+  - Kartu ringkasan status kanal marketplace aktif.
+  - Tombol & Dialog *Hubungkan Toko Baru* dengan panduan otorisasi resmi OAuth 2.0.
+  - Tabel daftar toko yang sudah terhubung: Nama Toko, Platform, Akun Toko, Status Otorisasi (Aktif / Terputus), Indikator Auto-Sync Stok & Pesanan, Waktu Sinkronisasi Terakhir, Jumlah Produk Aktif, dan tombol aksi *Sinkron Ulang* serta *Putuskan / Hubungkan Kembali*.
+
+#### 6.8.5 Sub-Module: Setting (`/ecommerce/setting`)
+- **Tujuan:** Pengaturan webhook data push real-time dan aturan otomatis pemotongan stok inventaris toko.
+- **Menu Hirarki:** `E-Commerce` -> `Setting` (path: `/ecommerce/setting`).
+- **Fitur Utama:**
+  - **Webhook & Event Push:**
+    - Callback URL dengan tombol *Salin URL* dan tombol *Uji Ping Webhook* (simulasi pengiriman payload dengan status 200 OK).
+    - Secret Key enkripsi otentikasi webhook.
+    - Toggle aktivasi event push: `order.created`, `order.paid`, `order.cancelled`, `tracking.updated`, dan `inventory.updated`.
+  - **Aturan Pemotongan Stok Produk (Stock Deduction Rules):**
+    - Waktu Pemotongan Stok: Pilihan *Saat Pesanan Dibuat* (booking instan) atau *Saat Pembayaran Terkonfirmasi* (menghindari stok tertahan).
+    - Alokasi Gudang Otomatis: Pilihan *Gudang Terdekat dengan Pembeli* atau *Gudang Utama Default*.
+    - Buffer Stok Pengaman (*Safety Buffer*): Input angka unit cadangan yang ditahan dari etalase untuk mencegah *overselling* saat flash sale.
+
 ---
 
 ## 7. Recommended Directory Structure
@@ -476,6 +548,18 @@ omni-app/
 │   │   │   ├── +page.svelte      # Overview / Root Dashboard (/)
 │   │   │   ├── settings/
 │   │   │   │   └── +page.svelte  # Theme, Language, Profile settings
+│   │   │   ├── ecommerce/
+│   │   │   │   ├── +page.ts      # Redirect ke /ecommerce/orders
+│   │   │   │   ├── orders/
+│   │   │   │   │   ├── +page.svelte # Orders (Table, Product & Variant, Search Type Dropdown, Actions)
+│   │   │   │   │   └── mass-shipping/
+│   │   │   │   │       └── +page.svelte # Dedicated Mass Shipping Page
+│   │   │   │   ├── copy/
+│   │   │   │   │   └── +page.svelte # Copy Product (Tabs: Product, Draft, Copied)
+│   │   │   │   ├── integration/
+│   │   │   │   │   └── +page.svelte # Integration (Store List, Connect Store OAuth Modal)
+│   │   │   │   └── setting/
+│   │   │   │       └── +page.svelte # Setting (Webhook Callback, Event Push, Stock Deduction)
 │   │   │   ├── pos/
 │   │   │   │   ├── +page.ts      # Redirect ke /pos/transaction
 │   │   │   │   ├── transaction/

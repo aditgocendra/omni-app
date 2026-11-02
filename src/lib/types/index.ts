@@ -175,3 +175,98 @@ export interface PosSettingConfig {
 	autoPrintReceipt: boolean;
 	allowManualDiscount: boolean;
 }
+
+// ==========================================
+// E-Commerce Module Types
+// ==========================================
+
+export type ShippingServiceType =
+	| "Instant"
+	| "Instant Prioritas"
+	| "Hemat"
+	| "Reguler";
+
+export type EcommerceOrderStatus =
+	| "Perlu Diproses"
+	| "Telah Diproses"
+	| "Siap Dikirim"
+	| "Dalam Pengiriman"
+	| "Selesai"
+	| "Dibatalkan";
+
+export interface EcommerceOrderItem {
+	id: string;
+	productId: string;
+	productName: string;
+	sku: string;
+	variant: string; // e.g. "1 Meter", "Black - 2 Meter"
+	image: string;
+	price: number;
+	qty: number;
+	total: number;
+}
+
+export interface EcommerceOrderRecord {
+	id: string;
+	orderNumber: string; // e.g. "261031SHP001"
+	channel: "Shopee" | "Tokopedia" | "Lazada" | "TikTok Shop";
+	storeAccount: string; // e.g. "Official Store Jakarta"
+	date: string; // e.g. "31/10/2026"
+	orderStatus: EcommerceOrderStatus;
+	shippingStatus: string; // e.g. "Perlu Diproses"
+	shippingDeadline: string; // e.g. "02/11/2026 23:59"
+	shippingService: ShippingServiceType;
+	courierName: string; // e.g. "GrabExpress Instant", "J&T Reguler"
+	trackingNumber?: string;
+	revenue: number;
+	customerName: string;
+	customerPhone: string;
+	shippingAddress: string;
+	isArranged: boolean; // true if pickup or shipment has been arranged
+	items: EcommerceOrderItem[];
+	notes?: string;
+}
+
+export interface EcommerceCopyItem {
+	id: string;
+	name: string;
+	sku: string;
+	sourceChannel: string;
+	targetChannel: string;
+	price: number;
+	stock: number;
+	image: string;
+	status: "Product" | "Draft" | "Copied";
+	variantsCount: number;
+	updatedAt: string;
+}
+
+export interface EcommerceStoreIntegration {
+	id: string;
+	channel: "Shopee" | "Tokopedia" | "Lazada" | "TikTok Shop" | "Blibli";
+	storeName: string;
+	storeAccount: string;
+	storeUrl?: string;
+	isConnected: boolean;
+	connectedAt: string;
+	lastSyncAt: string;
+	autoSyncStock: boolean;
+	autoSyncOrders: boolean;
+	activeProductCount: number;
+}
+
+export interface EcommerceSettingsConfig {
+	webhookCallbackUrl: string;
+	webhookSecret: string;
+	webhookEvents: {
+		orderCreated: boolean;
+		orderPaid: boolean;
+		orderCancelled: boolean;
+		trackingUpdated: boolean;
+		stockUpdated: boolean;
+	};
+	stockDeductionTiming: "order_created" | "order_paid";
+	stockWarehouseAllocation: "auto_nearest" | "default_warehouse";
+	safetyStockBuffer: number;
+}
+

@@ -5,6 +5,7 @@ export interface DataTableColumn<TItem> {
 	header: string;
 	headerClass?: string;
 	cellClass?: string;
+	class?: string;
 	align?: "left" | "center" | "right";
 	sortable?: boolean;
 	accessorFn?: (item: TItem) => string | number;
