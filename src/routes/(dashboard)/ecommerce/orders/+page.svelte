@@ -2,11 +2,14 @@
 	import * as Button from "$lib/components/ui/button/index.js";
 	import * as Dialog from "$lib/components/ui/dialog/index.js";
 	import * as Select from "$lib/components/ui/select/index.js";
+	import * as Card from "$lib/components/ui/card/index.js";
+	import * as Pagination from "$lib/components/ui/pagination/index.js";
+	import * as Popover from "$lib/components/ui/popover/index.js";
+	import RangeCalendar from "$lib/components/ui/range-calendar/range-calendar.svelte";
+	import { Checkbox } from "$lib/components/ui/checkbox/index.js";
 	import { Input } from "$lib/components/ui/input/index.js";
 	import { Label } from "$lib/components/ui/label/index.js";
 	import { Badge } from "$lib/components/ui/badge/index.js";
-	import DataTable from "$lib/components/common/DataTable.svelte";
-	import type { DataTableColumn } from "$lib/components/common/data-table-types.js";
 	import { initialEcommerceOrders } from "$lib/data/ecommerce.js";
 	import type {
 		EcommerceOrderRecord,
@@ -14,6 +17,10 @@
 		ShippingServiceType,
 	} from "$lib/types/index.js";
 	import { t } from "$lib/i18n/index.js";
+	import { cn } from "$lib/utils.js";
+	import StatusDot from "$lib/components/common/StatusDot.svelte";
+	import type { DateRange } from "bits-ui";
+	import { getLocalTimeZone, today } from "@internationalized/date";
 
 	// Icons
 	import SearchIcon from "@lucide/svelte/icons/search";
@@ -35,14 +42,26 @@
 	import UserIcon from "@lucide/svelte/icons/user";
 	import PhoneIcon from "@lucide/svelte/icons/phone";
 	import ExternalLinkIcon from "@lucide/svelte/icons/external-link";
-	import StatusDot from "#lib/components/common/StatusDot.svelte";
+	import CopyIcon from "@lucide/svelte/icons/copy";
+	import CheckIcon from "@lucide/svelte/icons/check";
+	import ShoppingBagIcon from "@lucide/svelte/icons/shopping-bag";
+	import ArrowUpIcon from "@lucide/svelte/icons/arrow-up";
+	import ArrowDownIcon from "@lucide/svelte/icons/arrow-down";
+	import ArrowUpDownIcon from "@lucide/svelte/icons/arrow-up-down";
 
 	// Orders state
 	let orders = $state<EcommerceOrderRecord[]>([...initialEcommerceOrders]);
 	let selectedIds = $state<(string | number)[]>([]);
 	let toastMessage = $state<string | null>(null);
+	let copiedOrderNumber = $state<string | null>(null);
+	let copyTimeout: ReturnType<typeof setTimeout> | null = null;
 
 	// Search & Filters
+	const todayDate = today(getLocalTimeZone());
+	let dateRange = $state<DateRange>({
+		start: todayDate,
+		end: todayDate,
+	});
 	let searchType = $state<"orderNumber" | "product">("orderNumber");
 	let searchKeywordInput = $state("");
 	let appliedSearchType = $state<"orderNumber" | "product">("orderNumber");
@@ -78,6 +97,23 @@
 		}, 3500);
 	}
 
+	async function copyOrderNumber(orderNum: string) {
+		try {
+			await navigator.clipboard.writeText(orderNum);
+			copiedOrderNumber = orderNum;
+			if (copyTimeout) clearTimeout(copyTimeout);
+			copyTimeout = setTimeout(() => {
+				if (copiedOrderNumber === orderNum) copiedOrderNumber = null;
+			}, 2000);
+			showToast(
+				t("ecommerce.orders.orderNumberCopied", { number: orderNum }) ||
+					`Nomor pesanan ${orderNum} berhasil disalin!`,
+			);
+		} catch {
+			showToast(`No. Pesanan: ${orderNum}`);
+		}
+	}
+
 	function parseDate(dateStr: string): number {
 		// Format: "DD/MM/YYYY"
 		if (!dateStr) return 0;
@@ -107,6 +143,21 @@
 		return t("ecommerce.orders.deadlineNotice", { date });
 	}
 
+	function formatDateRange(range: DateRange): string {
+		if (!range?.start) return "Pilih Rentang Tanggal";
+		const startStr = `${String(range.start.day).padStart(2, "0")}/${String(range.start.month).padStart(2, "0")}/${range.start.year}`;
+		if (
+			!range.end ||
+			(range.start.day === range.end.day &&
+				range.start.month === range.end.month &&
+				range.start.year === range.end.year)
+		) {
+			return `${startStr} (Hari Ini)`;
+		}
+		const endStr = `${String(range.end.day).padStart(2, "0")}/${String(range.end.month).padStart(2, "0")}/${range.end.year}`;
+		return `${startStr} - ${endStr}`;
+	}
+
 	function handleApplySearch() {
 		appliedSearchType = searchType;
 		appliedSearchKeyword = searchKeywordInput.trim().toLowerCase();
@@ -120,6 +171,10 @@
 		appliedSearchKeyword = "";
 		selectedShopeeAccount = "all";
 		selectedStatus = "all";
+		dateRange = {
+			start: todayDate,
+			end: todayDate,
+		};
 		sortKey = "date";
 		sortDirection = "desc";
 		currentPage = 1;
@@ -169,6 +224,30 @@
 			// Status filter
 			if (selectedStatus !== "all") {
 				if (order.orderStatus !== selectedStatus) return false;
+			}
+
+			// Date range filter
+			if (dateRange?.start) {
+				const orderTime = parseDate(order.date);
+				const startTime = new Date(
+					dateRange.start.year,
+					dateRange.start.month - 1,
+					dateRange.start.day,
+				).getTime();
+				const endVal = dateRange.end ?? dateRange.start;
+				const endTime = new Date(
+					endVal.year,
+					endVal.month - 1,
+					endVal.day,
+					23,
+					59,
+					59,
+					999,
+				).getTime();
+
+				if (orderTime < startTime || orderTime > endTime) {
+					return false;
+				}
 			}
 
 			// Search keyword filter (applied only when search button is triggered)
@@ -227,53 +306,61 @@
 		sortedOrders.slice((currentPage - 1) * perPage, currentPage * perPage),
 	);
 
-	// Columns configuration
-	const columns = $derived<DataTableColumn<EcommerceOrderRecord>[]>([
-		{
-			id: "product",
-			header: t("ecommerce.orders.colProduct"),
-			class: "min-w-[320px]",
-		},
-		{
-			id: "shippingStatus",
-			header: t("ecommerce.orders.colShippingStatus"),
-			sortable: true,
-			accessorFn: (row: EcommerceOrderRecord) => row.shippingStatus,
-			class: "min-w-[260px]",
-		},
-		{
-			id: "shippingService",
-			header: t("ecommerce.orders.colShippingServices"),
-			align: "left",
-			class: "min-w-[150px]",
-		},
-		{
-			id: "revenue",
-			header: t("ecommerce.orders.colRevenue"),
-			sortable: true,
-			accessorFn: (row: EcommerceOrderRecord) => row.revenue,
-			align: "left",
-			class: "min-w-[130px]",
-		},
-		{
-			id: "date",
-			header: t("ecommerce.orders.colDate"),
-			sortable: true,
-			accessorFn: (row: EcommerceOrderRecord) => parseDate(row.date),
-			align: "center",
-			class: "min-w-[110px]",
-		},
-		{
-			id: "actions",
-			header: t("ecommerce.orders.colActions"),
-			align: "right",
-			class: "min-w-[160px]",
-		},
-	]);
+	const pageItemKeys = $derived(paginatedOrders.map((o) => o.id));
+	const isAllSelected = $derived(
+		pageItemKeys.length > 0 &&
+			pageItemKeys.every((k) => selectedIds.includes(k)),
+	);
+	const isSomeSelected = $derived(
+		pageItemKeys.some((k) => selectedIds.includes(k)) && !isAllSelected,
+	);
+	const totalPages = $derived(Math.ceil(sortedOrders.length / perPage) || 1);
+	const rangeStart = $derived(
+		sortedOrders.length === 0 ? 0 : (currentPage - 1) * perPage + 1,
+	);
+	const rangeEnd = $derived(
+		Math.min(currentPage * perPage, sortedOrders.length),
+	);
 
-	function handleSort(key: string, direction: "asc" | "desc" | "none") {
-		sortKey = key;
-		sortDirection = direction;
+	function toggleSelectAll() {
+		if (isAllSelected) {
+			selectedIds = selectedIds.filter(
+				(id) => !pageItemKeys.includes(String(id)),
+			);
+		} else {
+			selectedIds = Array.from(
+				new Set([...selectedIds, ...pageItemKeys]),
+			);
+		}
+	}
+
+	function toggleSelectItem(id: string) {
+		if (selectedIds.includes(id)) {
+			selectedIds = selectedIds.filter((item) => item !== id);
+		} else {
+			selectedIds = [...selectedIds, id];
+		}
+	}
+
+	function clearSelection() {
+		selectedIds = [];
+	}
+
+	function handleSort(columnId: string) {
+		let nextDir: "asc" | "desc" | "none" = "asc";
+		if (sortKey === columnId) {
+			if (sortDirection === "asc") nextDir = "desc";
+			else if (sortDirection === "desc") {
+				sortKey = null;
+				nextDir = "none";
+			} else {
+				nextDir = "asc";
+			}
+		} else {
+			nextDir = "asc";
+		}
+		sortKey = nextDir === "none" ? null : columnId;
+		sortDirection = nextDir;
 	}
 
 	// Action triggers
@@ -500,6 +587,54 @@
 				</Select.Root>
 			</div>
 
+			<!-- Filter Date Range Picker (Default: Hari Ini / Today) -->
+			<div class="w-full lg:w-64 shrink-0">
+				<Popover.Root>
+					<Popover.Trigger
+						class="h-9 w-full rounded-lg border border-border bg-card px-3 text-xs font-medium cursor-pointer flex items-center justify-between text-foreground hover:bg-muted/40 transition-colors"
+					>
+						<div class="flex items-center gap-2 truncate">
+							<CalendarIcon
+								class="size-3.5 text-muted-foreground shrink-0"
+							/>
+							<span class="truncate"
+								>{formatDateRange(dateRange)}</span
+							>
+						</div>
+					</Popover.Trigger>
+					<Popover.Content class="w-auto p-3" align="start">
+						<div class="space-y-3">
+							<div
+								class="flex items-center justify-between border-b border-border/60 pb-2"
+							>
+								<span
+									class="text-xs font-semibold text-foreground"
+									>Pilih Rentang Tanggal</span
+								>
+								<Button.Root
+									type="button"
+									variant="ghost"
+									size="xs"
+									class="h-6 text-[11px] px-2 text-primary font-medium hover:bg-primary/10 cursor-pointer"
+									onclick={() => {
+										dateRange = {
+											start: todayDate,
+											end: todayDate,
+										};
+									}}
+								>
+									Hari Ini
+								</Button.Root>
+							</div>
+							<RangeCalendar
+								bind:value={dateRange}
+								class="rounded-md border border-border/60"
+							/>
+						</div>
+					</Popover.Content>
+				</Popover.Root>
+			</div>
+
 			<!-- Reset Button -->
 			<Button.Root
 				type="button"
@@ -514,196 +649,526 @@
 		</div>
 	</div>
 
-	<!-- Orders DataTable with Collapsible Rows & Minimum Pagination 10 -->
-	<div
-		class="rounded-xl border border-border/80 bg-card shadow-2xs overflow-hidden"
-	>
-		<DataTable
-			data={paginatedOrders}
-			{columns}
-			page={currentPage}
-			{perPage}
-			perPageOptions={[10, 20, 50]}
-			{sortKey}
-			{sortDirection}
-			onSort={handleSort}
-			selectable={true}
-			{selectedIds}
-			onSelectionChange={(ids) => (selectedIds = ids)}
+	<!-- Bulk Action / Selection Toolbar -->
+	{#if selectedIds.length > 0}
+		<div
+			class="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-primary/10 border border-primary/20 text-xs shadow-2xs"
 		>
-			{#snippet cell({ item, column })}
-				{#if column.id === "product"}
-					<!-- Product: Photo, Product Name, Variant -->
-					<div class="flex items-start gap-2.5 py-1">
-						<!-- Thumbnail Photo of primary item -->
-						<div
-							class="size-11 rounded-lg border border-border/80 bg-muted/40 overflow-hidden shrink-0 flex items-center justify-center relative"
-						>
-							{#if item.items[0]?.image}
-								<img
-									src={item.items[0].image}
-									alt={item.items[0].productName}
-									class="size-full object-cover"
-								/>
-							{:else}
-								<PackageIcon
-									class="size-5 text-muted-foreground"
-								/>
-							{/if}
-						</div>
+			<div class="flex items-center gap-2.5">
+				<span class="font-semibold text-primary">
+					{selectedIds.length}
+					{t("ecommerce.orders.selectedCount")}
+				</span>
+			</div>
+			<div class="flex items-center gap-2">
+				<Button.Root
+					type="button"
+					variant="ghost"
+					size="xs"
+					onclick={clearSelection}
+					class="h-7 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+				>
+					{t("ecommerce.orders.deselect")}
+				</Button.Root>
+				<Button.Root
+					type="button"
+					size="xs"
+					class="h-7 px-3 text-xs font-semibold bg-primary text-white hover:bg-primary/90 cursor-pointer shadow-xs gap-1.5"
+					href="/ecommerce/orders/mass-shipping"
+				>
+					<TruckIcon class="size-3" />
+					<span
+						>{t("ecommerce.orders.massShippingBtn")} ({selectedIds.length})</span
+					>
+				</Button.Root>
+			</div>
+		</div>
+	{/if}
 
-						<!-- Info text -->
-						<div class="min-w-0 flex-1">
-							<div class="flex items-center gap-1.5 mb-0.5">
+	<!-- List Column Header (Desktop) -->
+	<div
+		class="hidden lg:grid grid-cols-[minmax(320px,3fr)_minmax(220px,2fr)_minmax(160px,1.5fr)_minmax(140px,1.2fr)_minmax(160px,1.5fr)] gap-4 px-5 py-3 rounded-xl border border-border/70 bg-muted/40 text-xs font-semibold uppercase tracking-wider text-muted-foreground shadow-2xs items-center"
+	>
+		<!-- Kolom 1: Produk (dengan Select All Checkbox) -->
+		<div class="flex items-center gap-3">
+			<Checkbox
+				checked={isAllSelected}
+				indeterminate={isSomeSelected}
+				onCheckedChange={toggleSelectAll}
+				aria-label={t("ecommerce.orders.selectAll")}
+			/>
+			<span>{t("ecommerce.orders.colProduct")}</span>
+		</div>
+
+		<!-- Kolom 2: Status Shipping (Sortable) -->
+		<div class="flex items-center">
+			<button
+				type="button"
+				onclick={() => handleSort("shippingStatus")}
+				class="inline-flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer group"
+				title="Klik untuk sort Status Shipping"
+			>
+				<span>{t("ecommerce.orders.colShippingStatus")}</span>
+				{#if sortKey === "shippingStatus" && sortDirection === "asc"}
+					<ArrowUpIcon class="size-3.5 text-primary" />
+				{:else if sortKey === "shippingStatus" && sortDirection === "desc"}
+					<ArrowDownIcon class="size-3.5 text-primary" />
+				{:else}
+					<ArrowUpDownIcon
+						class="size-3 text-muted-foreground/50 group-hover:text-muted-foreground"
+					/>
+				{/if}
+			</button>
+		</div>
+
+		<!-- Kolom 3: Shipping Services (Rata Kiri) -->
+		<div class="flex items-center">
+			<span>{t("ecommerce.orders.colShippingServices")}</span>
+		</div>
+
+		<!-- Kolom 4: Revenue (Sortable & Rata Kiri) -->
+		<div class="flex items-center">
+			<button
+				type="button"
+				onclick={() => handleSort("revenue")}
+				class="inline-flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer group"
+				title="Klik untuk sort Revenue"
+			>
+				<span>{t("ecommerce.orders.colRevenue")}</span>
+				{#if sortKey === "revenue" && sortDirection === "asc"}
+					<ArrowUpIcon class="size-3.5 text-primary" />
+				{:else if sortKey === "revenue" && sortDirection === "desc"}
+					<ArrowDownIcon class="size-3.5 text-primary" />
+				{:else}
+					<ArrowUpDownIcon
+						class="size-3 text-muted-foreground/50 group-hover:text-muted-foreground"
+					/>
+				{/if}
+			</button>
+		</div>
+
+		<!-- Kolom 5: Actions (Rata Kanan) -->
+		<div class="text-right">
+			<span>{t("ecommerce.orders.colActions")}</span>
+		</div>
+	</div>
+
+	<!-- Orders Card List -->
+	{#if paginatedOrders.length === 0}
+		<Card.Root
+			class="p-12 text-center border border-border/80 bg-card rounded-xl"
+		>
+			<div
+				class="flex flex-col items-center justify-center gap-2 text-muted-foreground"
+			>
+				<PackageIcon class="size-10 text-muted-foreground/40" />
+				<h4 class="text-sm font-semibold text-foreground">
+					Tidak ada pesanan ditemukan
+				</h4>
+				<p class="text-xs">
+					Coba sesuaikan kata kunci pencarian atau filter status
+					pesanan.
+				</p>
+				<Button.Root
+					type="button"
+					variant="outline"
+					size="sm"
+					onclick={handleResetFilters}
+					class="mt-2 text-xs cursor-pointer gap-1.5"
+				>
+					<RotateCcwIcon class="size-3.5" />
+					<span>{t("ecommerce.orders.reset")}</span>
+				</Button.Root>
+			</div>
+		</Card.Root>
+	{:else}
+		<div class="space-y-4">
+			{#each paginatedOrders as item (item.id)}
+				<Card.Root
+					class="p-0 gap-0 overflow-hidden border border-border/80 bg-card shadow-2xs hover:border-primary/40 transition-colors"
+				>
+					<!-- Card Header / Bagian Atas: Asal Pesanan Shopee & Ujung Kiri No Pesanan + Tombol Copy -->
+					<div
+						class="flex flex-wrap items-center justify-between gap-2.5 px-4 py-2.5 bg-muted/40 border-b border-border/70 text-xs"
+					>
+						<!-- Ujung Kiri: Checkbox, No Pesanan + Tombol Copy, Asal Pesanan Shopee -->
+						<div
+							class="flex flex-wrap items-center gap-2.5 sm:gap-3"
+						>
+							<!-- Checkbox -->
+							<Checkbox
+								checked={selectedIds.includes(item.id)}
+								onCheckedChange={() =>
+									toggleSelectItem(item.id)}
+								aria-label="Pilih pesanan {item.orderNumber}"
+							/>
+
+							<!-- No. Pesanan dengan tombol copy disampingnya -->
+							<div class="flex items-center gap-1.5">
+								<span
+									class="text-muted-foreground font-mono text-[11px] font-medium hidden xs:inline"
+									>No.</span
+								>
 								<button
 									type="button"
-									class="font-mono text-[11px] font-bold text-foreground hover:text-primary transition-colors cursor-pointer text-left"
+									class="font-mono text-xs font-bold text-foreground hover:text-primary transition-colors cursor-pointer text-left"
 									onclick={() => openDetailModal(item)}
+									title="Lihat rincian pesanan"
 								>
 									{item.orderNumber}
 								</button>
-								<span
-									class="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-primary/10 text-primary border border-primary/20"
+
+								<Button.Root
+									variant="ghost"
+									size="icon-xs"
+									type="button"
+									class="size-6 rounded text-muted-foreground hover:text-foreground cursor-pointer"
+									onclick={(e) => {
+										e.stopPropagation();
+										copyOrderNumber(item.orderNumber);
+									}}
+									title={copiedOrderNumber ===
+									item.orderNumber
+										? "Tersalin!"
+										: t("ecommerce.orders.copyOrderNumber")}
 								>
-									{item.channel}
-								</span>
+									{#if copiedOrderNumber === item.orderNumber}
+										<CheckIcon
+											class="size-3 text-emerald-600 dark:text-emerald-400"
+										/>
+									{:else}
+										<CopyIcon class="size-3" />
+									{/if}
+								</Button.Root>
 							</div>
 
-							<p
-								class="font-medium text-xs text-foreground truncate max-w-xs sm:max-w-md"
-							>
-								{item.items[0]?.productName ?? "-"}
-							</p>
+							<span class="text-border hidden sm:inline">|</span>
 
-							<div
-								class="flex items-center gap-2 mt-0.5 text-[11px] text-muted-foreground"
-							>
+							<!-- Asal Pesanan Shopee -->
+							<div class="flex items-center gap-1.5">
 								<span
-									class="inline-flex items-center gap-1 font-medium text-foreground/80"
+									class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-[#ee4d2d]/10 text-[#ee4d2d] dark:text-[#ff6d4d] border border-[#ee4d2d]/25 shadow-2xs"
 								>
-									<LayersIcon
-										class="size-3 text-primary/70 shrink-0"
+									<ShoppingBagIcon
+										class="size-3 text-[#ee4d2d] dark:text-[#ff6d4d]"
 									/>
-									Variant : {item.items[0]?.variant ?? "-"}
+									<span>Shopee</span>
 								</span>
-								{#if item.items.length > 1}
-									<span
-										class="text-[10px] text-primary font-semibold"
-									>
-										+{item.items.length - 1} varian lainnya
-									</span>
-								{/if}
+								<span
+									class="text-xs font-medium text-foreground/80 font-mono"
+								>
+									{item.storeAccount}
+								</span>
+							</div>
+						</div>
+
+						<!-- Ujung Kanan: Tanggal Pesanan & Customer Info -->
+						<div
+							class="flex items-center gap-2 text-xs text-muted-foreground font-mono ml-auto"
+						>
+							<span
+								class="hidden sm:inline font-sans text-muted-foreground"
+								>{item.customerName}</span
+							>
+							<span class="hidden sm:inline text-border">•</span>
+							<div
+								class="flex items-center gap-1 text-foreground/80 font-medium"
+							>
+								<CalendarIcon
+									class="size-3.5 text-muted-foreground"
+								/>
+								<span>{item.date}</span>
 							</div>
 						</div>
 					</div>
-				{:else if column.id === "shippingStatus"}
-					<!-- Status Shipping: Status Pengiriman + Batas Waktu Warning -->
-					<div class="space-y-1.5 py-1">
-						<span
-							class="inline-flex items-center gap-1.5 text-xs font-medium"
+
+					<!-- Card Content / Baris Data Pesanan -->
+					<Card.Content class="p-4 sm:p-5">
+						<div
+							class="grid grid-cols-1 lg:grid-cols-[minmax(320px,3fr)_minmax(220px,2fr)_minmax(160px,1.5fr)_minmax(140px,1.2fr)_minmax(160px,1.5fr)] gap-4 items-center"
 						>
-							<StatusDot
-								status={item.orderStatus === "Telah Diproses"
-									? "online"
-									: "pending"}
-								ping={item.orderStatus === "Perlu Diproses"}
-							/>
-							<span class="capitalize">{item.shippingStatus}</span
+							<!-- 1. Produk -->
+							<div class="flex items-start gap-3">
+								<div
+									class="size-13 rounded-lg border border-border/80 bg-muted/40 overflow-hidden shrink-0 flex items-center justify-center relative"
+								>
+									{#if item.items[0]?.image}
+										<img
+											src={item.items[0].image}
+											alt={item.items[0].productName}
+											class="size-full object-cover"
+										/>
+									{:else}
+										<PackageIcon
+											class="size-6 text-muted-foreground"
+										/>
+									{/if}
+								</div>
+
+								<div class="min-w-0 flex-1">
+									<p
+										class="font-medium text-xs text-foreground line-clamp-2 leading-snug"
+										title={item.items[0]?.productName}
+									>
+										{item.items[0]?.productName ?? "-"}
+									</p>
+
+									<div
+										class="flex items-center gap-2 mt-1.5 text-[11px] text-muted-foreground"
+									>
+										<span
+											class="inline-flex items-center gap-1 font-medium text-foreground/80 bg-muted/60 px-2 py-0.5 rounded"
+										>
+											<LayersIcon
+												class="size-3 text-primary/70 shrink-0"
+											/>
+											Variant : {item.items[0]?.variant ??
+												"-"}
+										</span>
+										{#if item.items.length > 1}
+											<span
+												class="text-[10px] text-primary font-semibold"
+											>
+												+{item.items.length - 1} varian lainnya
+											</span>
+										{/if}
+									</div>
+								</div>
+							</div>
+
+							<!-- 2. Status Shipping -->
+							<div class="space-y-1.5">
+								<span
+									class="inline-flex items-center gap-1.5 text-xs font-semibold"
+								>
+									<StatusDot
+										status={item.orderStatus ===
+										"Telah Diproses"
+											? "online"
+											: "pending"}
+										ping={item.orderStatus ===
+											"Perlu Diproses"}
+									/>
+									<span class="capitalize"
+										>{item.shippingStatus}</span
+									>
+								</span>
+
+								<p
+									class="text-[10px] text-muted-foreground leading-relaxed flex items-start gap-1"
+								>
+									<span
+										>{formatDeadline(
+											item.shippingDeadline,
+										)}</span
+									>
+								</p>
+							</div>
+
+							<!-- 3. Shipping Services (Rata Kiri) -->
+							<div class="space-y-1 text-left">
+								<div
+									class="inline-flex items-center gap-1.5 font-semibold text-xs text-foreground bg-muted/60 px-2.5 py-1 rounded-md"
+								>
+									{item.shippingService}
+								</div>
+							</div>
+
+							<!-- 4. Revenue / Total Pembayaran (Rata Kiri) -->
+							<div class="text-left space-y-0.5">
+								<span
+									class="font-mono text-xs font-bold text-foreground block"
+								>
+									{formatRupiah(item.revenue)}
+								</span>
+							</div>
+
+							<!-- 5. Actions -->
+							<div
+								class="flex items-center justify-start lg:justify-end gap-1.5"
 							>
-						</span>
+								{#if !item.isArranged && item.orderStatus !== "Telah Diproses"}
+									{#if item.shippingService === "Instant" || item.shippingService === "Instant Prioritas"}
+										<Button.Root
+											type="button"
+											size="xs"
+											onclick={() =>
+												openPickupModal(item)}
+											class="h-7 px-2.5 text-[11px] font-semibold bg-foreground text-background hover:bg-foreground/90 cursor-pointer gap-1 shadow-xs"
+										>
+											<TruckIcon class="size-3" />
+											<span
+												>{t(
+													"ecommerce.orders.arrangePickup",
+												)}</span
+											>
+										</Button.Root>
+									{:else}
+										<Button.Root
+											type="button"
+											size="xs"
+											onclick={() =>
+												openShipmentModal(item)}
+											class="h-7 px-2.5 text-[11px] font-semibold bg-primary text-white hover:bg-primary/90 cursor-pointer gap-1 shadow-xs"
+										>
+											<SendIcon class="size-3" />
+											<span
+												>{t(
+													"ecommerce.orders.arrangeShipment",
+												)}</span
+											>
+										</Button.Root>
+									{/if}
+								{:else}
+									<Button.Root
+										type="button"
+										variant="outline"
+										size="icon-xs"
+										onclick={() => openDetailModal(item)}
+										class="size-7 rounded-md cursor-pointer text-muted-foreground hover:text-foreground"
+										title={t("ecommerce.orders.detail")}
+									>
+										<EyeIcon class="size-3.5" />
+									</Button.Root>
 
-						<!-- Batas Waktu Notice -->
-						<p
-							class="text-[10px] text-muted-foreground leading-relaxed flex items-start gap-1"
-						>
-							<span>{formatDeadline(item.shippingDeadline)}</span>
-						</p>
-					</div>
-				{:else if column.id === "shippingService"}
-					<!-- Shipping Services: Instant, Instant Prioritas, Hemat, atau Reguler -->
+									<Button.Root
+										type="button"
+										variant="outline"
+										size="xs"
+										onclick={() => openPrintModal(item)}
+										class="h-7 px-2.5 text-[11px] font-semibold border-primary/40 text-primary hover:bg-primary/10 cursor-pointer gap-1 shadow-2xs"
+									>
+										<PrinterIcon class="size-3.5" />
+										<span
+											>{t(
+												"ecommerce.orders.printLabel",
+											)}</span
+										>
+									</Button.Root>
+								{/if}
+							</div>
+						</div>
+					</Card.Content>
+				</Card.Root>
+			{/each}
+		</div>
+	{/if}
 
-					<div
-						class="inline-flex items-center gap-1.5 font-semibold text-xs text-foreground bg-muted/60 px-2.5 py-1 rounded-md"
+	<!-- Pagination Controls (Minimum 10 per page) -->
+	<div
+		class="flex flex-col sm:flex-row items-center justify-between gap-3 border border-border/70 rounded-xl px-4 py-3 text-xs text-muted-foreground bg-card shadow-2xs"
+	>
+		<div
+			class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-start"
+		>
+			<div class="flex items-center gap-2">
+				<span>
+					Showing <span class="font-medium text-foreground"
+						>{rangeStart}</span
 					>
-						{item.shippingService}
-					</div>
-				{:else if column.id === "revenue"}
-					<span class="font-mono text-xs font-bold text-foreground">
-						{formatRupiah(item.revenue)}
+					to
+					<span class="font-medium text-foreground">{rangeEnd}</span>
+					of
+					<span class="font-medium text-foreground"
+						>{sortedOrders.length}</span
+					>
+					entries
+				</span>
+				{#if selectedIds.length > 0}
+					<span
+						class="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary"
+					>
+						{selectedIds.length}
+						{t("ecommerce.orders.selectedCount")}
 					</span>
-				{:else if column.id === "date"}
-					<div class="text-center py-1">
-						<span
-							class="font-mono text-xs text-muted-foreground font-medium"
-						>
-							{item.date}
-						</span>
-					</div>
-				{:else if column.id === "actions"}
-					<!-- Actions:
-					   - If Instant / Instant Prioritas & !isArranged: Atur Pickup
-					   - If Reguler / Hemat & !isArranged: Atur Pengiriman
-					   - If already arranged (or Telah Diproses): Icon Detail & Cetak Label
-					-->
-					<div class="flex items-center justify-end gap-1.5 py-1">
-						{#if !item.isArranged && item.orderStatus !== "Telah Diproses"}
-							{#if item.shippingService === "Instant" || item.shippingService === "Instant Prioritas"}
-								<Button.Root
-									type="button"
-									size="xs"
-									onclick={() => openPickupModal(item)}
-									class="h-7 px-2.5 text-[11px] font-semibold bg-foreground text-background hover:bg-foreground/90 cursor-pointer gap-1 shadow-xs"
-								>
-									<TruckIcon class="size-3" />
-									<span
-										>{t(
-											"ecommerce.orders.arrangePickup",
-										)}</span
-									>
-								</Button.Root>
-							{:else}
-								<Button.Root
-									type="button"
-									size="xs"
-									onclick={() => openShipmentModal(item)}
-									class="h-7 px-2.5 text-[11px] font-semibold bg-primary text-white hover:bg-primary/90 cursor-pointer gap-1 shadow-xs"
-								>
-									<SendIcon class="size-3" />
-									<span
-										>{t(
-											"ecommerce.orders.arrangeShipment",
-										)}</span
-									>
-								</Button.Root>
-							{/if}
-						{:else}
-							<!-- Sudah diatur: button Icon Detail dan Cetak Label -->
-							<Button.Root
-								type="button"
-								variant="outline"
-								size="icon-xs"
-								onclick={() => openDetailModal(item)}
-								class="size-7 rounded-md cursor-pointer text-muted-foreground hover:text-foreground"
-								title={t("ecommerce.orders.detail")}
-							>
-								<EyeIcon class="size-3.5" />
-							</Button.Root>
-
-							<Button.Root
-								type="button"
-								variant="outline"
-								size="xs"
-								onclick={() => openPrintModal(item)}
-								class="h-7 px-2.5 text-[11px] font-semibold border-primary/40 text-primary hover:bg-primary/10 cursor-pointer gap-1 shadow-2xs"
-							>
-								<PrinterIcon class="size-3.5" />
-								<span>{t("ecommerce.orders.printLabel")}</span>
-							</Button.Root>
-						{/if}
-					</div>
 				{/if}
-			{/snippet}
-		</DataTable>
+			</div>
+
+			<div class="flex items-center gap-1.5 ms-2">
+				<span class="hidden md:inline text-muted-foreground text-xs"
+					>Per page:</span
+				>
+				<Select.Root
+					type="single"
+					value={String(perPage)}
+					onValueChange={(v) => {
+						if (v) {
+							perPage = Number(v);
+							currentPage = 1;
+						}
+					}}
+					items={[10, 20, 50].map((opt) => ({
+						value: String(opt),
+						label: String(opt),
+					}))}
+				>
+					<Select.Trigger
+						size="sm"
+						class="h-7 w-18 text-xs font-semibold border border-border bg-white dark:bg-card text-foreground cursor-pointer hover:bg-slate-50 dark:hover:bg-muted shadow-xs transition-colors"
+					>
+						<Select.Value placeholder={String(perPage)} />
+					</Select.Trigger>
+					<Select.Content>
+						{#each [10, 20, 50] as opt}
+							<Select.Item
+								value={String(opt)}
+								label={String(opt)}
+							>
+								{opt}
+							</Select.Item>
+						{/each}
+					</Select.Content>
+				</Select.Root>
+			</div>
+		</div>
+
+		<!-- Pagination Controls: Next & Previous Page Always Visible -->
+		<div class="flex items-center justify-end w-full sm:w-auto">
+			<Pagination.Root
+				count={Math.max(sortedOrders.length, 1)}
+				{perPage}
+				bind:page={currentPage}
+				siblingCount={1}
+				class="mx-0 w-auto"
+			>
+				{#snippet children({ pages, currentPage })}
+					<Pagination.Content class="gap-1 flex items-center">
+						<Pagination.Item>
+							<Pagination.Previous
+								class="h-8 px-2.5 text-xs font-medium rounded-md cursor-pointer bg-white dark:bg-card text-foreground hover:bg-slate-50 dark:hover:bg-muted border border-border/80 shadow-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+							/>
+						</Pagination.Item>
+						{#each pages as pageItem (pageItem.key)}
+							{#if pageItem.type === "ellipsis"}
+								<Pagination.Item>
+									<Pagination.Ellipsis class="size-8" />
+								</Pagination.Item>
+							{:else}
+								<Pagination.Item>
+									<Pagination.Link
+										page={pageItem}
+										isActive={currentPage === pageItem.value}
+										class={cn(
+											"size-8 text-xs font-semibold rounded-md cursor-pointer transition-colors shadow-xs flex items-center justify-center",
+											currentPage === pageItem.value
+												? "bg-primary! text-white! border-primary! hover:bg-primary/90! hover:text-white!"
+												: "text-foreground bg-white dark:bg-card hover:bg-slate-50 dark:hover:bg-muted border border-border/80",
+										)}
+									>
+										{pageItem.value}
+									</Pagination.Link>
+								</Pagination.Item>
+							{/if}
+						{/each}
+						<Pagination.Item>
+							<Pagination.Next
+								class="h-8 px-2.5 text-xs font-medium rounded-md cursor-pointer bg-white dark:bg-card text-foreground hover:bg-slate-50 dark:hover:bg-muted border border-border/80 shadow-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+							/>
+						</Pagination.Item>
+					</Pagination.Content>
+				{/snippet}
+			</Pagination.Root>
+		</div>
 	</div>
 </div>
 

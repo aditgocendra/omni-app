@@ -465,32 +465,33 @@ Modul E-Commerce menyediakan integrasi multi-channel marketplace terpusat untuk 
 - **Menu Hirarki:** `E-Commerce` (menu utama) -> `Orders` (sub menu, path: `/ecommerce/orders`).
 - **Komponen Header & Toolbar:**
   - `[Title Modul & Subjudul - Tombol Pengiriman Massal]`: Layout flex `justify-between items-center`. Tombol *Pengiriman Massal* mengarahkan pengguna ke halaman dedicated `/ecommerce/orders/mass-shipping`.
-  - `[Search Dropdown + Input + Filter Shopee Account + Filter Status + Tombol Reset]`: Lebar penuh (full size).
+  - `[Search Dropdown + Input + Filter Shopee Account + Filter Status + Date Range Picker + Tombol Reset]`: Lebar penuh (full size).
     - **Search Dropdown Type:** Pilihan tipe pencarian (*Order Number* atau *Product Name*).
     - **Input Kolom Pencarian:** Teks kata kunci pencarian.
     - **Tombol Cari (Search Button):** Request pencarian baru dikirimkan hanya ketika pengguna menekan tombol ini atau menekan `Enter`.
     - **Filter Shopee Account:** Pilihan akun toko marketplace (*All Shopee Accounts*, *Official Store Jakarta*, *Surabaya Branch Store*, *Bandung Lifestyle Shop*).
     - **Filter Status Pesanan:** Pilihan status (*Semua*, *Perlu Diproses*, *Telah Diproses*).
-    - **Tombol Reset:** Mengembalikan seluruh filter ke kondisi bawaan.
-- **Spesifikasi Kolom Tabel Data:**
-  - `Checkbox`: Checkbox seleksi baris untuk operasi massal, dilengkapi select-all di header.
-  - `Product`: Berisi foto produk utama, nama produk, nomor pesanan, kanal marketplace, dan varian produk (contoh: *Variant : 1 Meter*). Detail pemesanan lengkap dapat diakses melalui tombol Icon Detail.
-  - `Status Shipping`:
-    - Status Pengiriman (*Perlu Diproses* / *Telah Diproses*).
-    - Peringatan Batas Waktu: *"Kirim / Pickup sebelum 02/11/2026"* (EN: *"Ship / Pickup before 02/11/2026"*).
-  - `Shipping Services`: Jenis layanan kurir pengiriman (*Instant*, *Instant Prioritas*, *Hemat*, atau *Reguler*) beserta nama armada kurir (*GrabExpress*, *GoSend*, *SPX*, *J&T*, *SiCepat*, *Anteraja*).
-  - `Revenue`: Total nilai pesanan (format Rupiah) dan kuantitas item.
-  - `Date`: Tanggal pesanan (format `DD/MM/YYYY`).
-  - `Actions`:
-    - Jika layanan **Instant** atau **Instant Prioritas** dan belum diatur: Tombol **Atur Pickup** (membuka modal penjemputan kurir).
-    - Jika layanan **Reguler** atau **Hemat** dan belum diatur: Tombol **Atur Pengiriman** (membuka modal serah terima drop-off gerai / pickup kurir).
-    - Jika sudah diatur / Telah Diproses: Berubah menjadi tombol **Icon Detail** (membuka modal detail lengkap) dan tombol **Cetak Label** (membuka pratinjau cetak resi thermal A6).
-- **Spesifikasi Tampilan Baris Pesanan:**
-  - Setiap baris pesanan menampilkan informasi produk utama dan variannya secara ringkas dan rapi tanpa collapsible row. Rincian seluruh item/varian produk, catatan pembeli (*buyer notes*), dan alamat tujuan pengiriman ditampilkan melalui modal pop-up **Detail Pesanan**.
-- **Spesifikasi Sorting:**
-  - Header kolom yang mendukung sorting: **Date**, **Status Shipping**, dan **Revenue**.
+    - **Filter Date Range Picker:** Pemilih rentang tanggal interaktif berbasis kalender (Popover & RangeCalendar) dengan nilai bawaan (*default*) tanggal hari ini (*today*), tombol pintas "Hari Ini", serta pemfilteran rentang tanggal pesanan secara dinamis.
+    - **Tombol Reset:** Mengembalikan seluruh filter ke kondisi bawaan (termasuk reset rentang tanggal ke hari ini).
+- **Spesifikasi Tampilan Baris Pesanan (Card-based Row Layout):**
+  - Setiap pesanan ditampilkan dalam format **Card** mandiri (`<Card.Root>`) dengan struktur hierarki:
+    - **Bagian Atas Card (Header Bar):**
+      - **Ujung Kiri:** Checkbox seleksi pesanan, **Nomor Pesanan** dengan tautan modal detail, **Tombol Copy** tepat di samping nomor pesanan dengan feedback visual dan notifikasi salin, separator, serta **Asal Pesanan Shopee** (badge Shopee oranye + nama akun toko e-commerce, contoh: *Official Store Jakarta*).
+      - **Ujung Kanan:** Nama pembeli/customer dan tanggal transaksi pesanan (`DD/MM/YYYY`).
+    - **Bagian Badan Card (Card Body Grid):**
+      - `Product`: Thumbnail foto produk utama, nama/judul produk, label varian (*Variant : 1 Meter*), dan badge indikator varian tambahan jika ada (*+X varian lainnya*).
+      - `Status Shipping`: Indikator statusdot & teks status pengiriman (*Perlu Diproses* / *Telah Diproses*) beserta peringatan batas waktu pengiriman: *"Kirim / Pickup sebelum 02/11/2026"* (EN: *"Ship / Pickup before 02/11/2026"*).
+      - `Shipping Services`: Jenis layanan kurir pengiriman (*Instant*, *Instant Prioritas*, *Hemat*, atau *Reguler*) beserta nama armada kurir (*GrabExpress*, *GoSend*, *SPX*, *J&T*, dll) dengan perataan rata kiri.
+      - `Revenue`: Total nilai pesanan (format Rupiah) dan total kuantitas item dengan perataan rata kiri.
+      - `Actions`:
+        - Jika layanan **Instant** atau **Instant Prioritas** dan belum diatur: Tombol **Atur Pickup** (membuka modal penjemputan kurir).
+        - Jika layanan **Reguler** atau **Hemat** dan belum diatur: Tombol **Atur Pengiriman** (membuka modal serah terima drop-off gerai / pickup kurir).
+        - Jika sudah diatur / Telah Diproses: Berubah menjadi tombol **Icon Detail** (membuka modal detail lengkap) dan tombol **Cetak Label** (membuka pratinjau cetak resi thermal A6).
+  - **Toolbar Seleksi & Header Kolom:**
+    - Toolbar aksi seleksi massal dengan indikator jumlah pesanan terpilih, tombol batalkan pilihan, dan shortcut ke halaman pengiriman massal.
+    - Header kolom desktop dengan Checkbox *Pilih Semua* (Select All) dan tombol pengurutan dinamis (*Sorting*) untuk **Status Shipping** dan **Revenue**.
 - **Spesifikasi Pagination:**
-  - Minimum Per Page adalah 10 (`perPage = 10`), dengan opsi `10, 20, 50`.
+  - Minimum Per Page adalah 10 (`perPage = 10`), dengan opsi dropdown `10, 20, 50` serta kontrol paginasi lengkap.
 
 #### 6.8.2 Sub-Module: Dedicated Mass Shipping (`/ecommerce/orders/mass-shipping`)
 - **Tujuan:** Pemrosesan pengiriman puluhan hingga ratusan pesanan marketplace secara serentak dalam satu alur kerja terpadu.
@@ -551,7 +552,7 @@ omni-app/
 │   │   │   ├── ecommerce/
 │   │   │   │   ├── +page.ts      # Redirect ke /ecommerce/orders
 │   │   │   │   ├── orders/
-│   │   │   │   │   ├── +page.svelte # Orders (Table, Product & Variant, Search Type Dropdown, Actions)
+│   │   │   │   │   ├── +page.svelte # Orders (Card-based Rows, Shopee Header, Copy Order Number, Actions)
 │   │   │   │   │   └── mass-shipping/
 │   │   │   │   │       └── +page.svelte # Dedicated Mass Shipping Page
 │   │   │   │   ├── copy/
