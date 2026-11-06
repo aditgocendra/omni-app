@@ -30,18 +30,10 @@
 	import PrinterIcon from "@lucide/svelte/icons/printer";
 	import EyeIcon from "@lucide/svelte/icons/eye";
 	import CalendarIcon from "@lucide/svelte/icons/calendar";
-	import ClockIcon from "@lucide/svelte/icons/clock";
-	import AlertCircleIcon from "@lucide/svelte/icons/alert-circle";
 	import CheckCircle2Icon from "@lucide/svelte/icons/check-circle-2";
 	import PackageIcon from "@lucide/svelte/icons/package";
 	import LayersIcon from "@lucide/svelte/icons/layers";
-	import ZapIcon from "@lucide/svelte/icons/zap";
-	import TagIcon from "@lucide/svelte/icons/tag";
-	import BarcodeIcon from "@lucide/svelte/icons/scan-barcode";
 	import MapPinIcon from "@lucide/svelte/icons/map-pin";
-	import UserIcon from "@lucide/svelte/icons/user";
-	import PhoneIcon from "@lucide/svelte/icons/phone";
-	import ExternalLinkIcon from "@lucide/svelte/icons/external-link";
 	import CopyIcon from "@lucide/svelte/icons/copy";
 	import CheckIcon from "@lucide/svelte/icons/check";
 	import ShoppingBagIcon from "@lucide/svelte/icons/shopping-bag";
@@ -144,7 +136,7 @@
 	}
 
 	function formatDateRange(range: DateRange): string {
-		if (!range?.start) return "Pilih Rentang Tanggal";
+		if (!range?.start) return "Semua Tanggal";
 		const startStr = `${String(range.start.day).padStart(2, "0")}/${String(range.start.month).padStart(2, "0")}/${range.start.year}`;
 		if (
 			!range.end ||
@@ -152,7 +144,11 @@
 				range.start.month === range.end.month &&
 				range.start.year === range.end.year)
 		) {
-			return `${startStr} (Hari Ini)`;
+			const isToday =
+				range.start.day === todayDate.day &&
+				range.start.month === todayDate.month &&
+				range.start.year === todayDate.year;
+			return isToday ? `${startStr} (Hari Ini)` : startStr;
 		}
 		const endStr = `${String(range.end.day).padStart(2, "0")}/${String(range.end.month).padStart(2, "0")}/${range.end.year}`;
 		return `${startStr} - ${endStr}`;
@@ -605,26 +601,58 @@
 					<Popover.Content class="w-auto p-3" align="start">
 						<div class="space-y-3">
 							<div
-								class="flex items-center justify-between border-b border-border/60 pb-2"
+								class="flex items-center justify-between border-b border-border/60 pb-2 gap-2"
 							>
 								<span
 									class="text-xs font-semibold text-foreground"
-									>Pilih Rentang Tanggal</span
+									>Pilih Rentang</span
 								>
-								<Button.Root
-									type="button"
-									variant="ghost"
-									size="xs"
-									class="h-6 text-[11px] px-2 text-primary font-medium hover:bg-primary/10 cursor-pointer"
-									onclick={() => {
-										dateRange = {
-											start: todayDate,
-											end: todayDate,
-										};
-									}}
-								>
-									Hari Ini
-								</Button.Root>
+								<div class="flex items-center gap-1">
+									<Button.Root
+										type="button"
+										variant="ghost"
+										size="xs"
+										class="h-6 text-[11px] px-2 text-primary font-medium hover:bg-primary/10 cursor-pointer"
+										onclick={() => {
+											dateRange = {
+												start: todayDate,
+												end: todayDate,
+											};
+										}}
+									>
+										Hari Ini
+									</Button.Root>
+									<Button.Root
+										type="button"
+										variant="ghost"
+										size="xs"
+										class="h-6 text-[11px] px-2 text-muted-foreground hover:text-foreground font-medium cursor-pointer"
+										onclick={() => {
+											dateRange = {
+												start: todayDate.subtract({
+													days: 7,
+												}),
+												end: todayDate,
+											};
+										}}
+									>
+										7 Hari
+									</Button.Root>
+									<Button.Root
+										type="button"
+										variant="ghost"
+										size="xs"
+										class="h-6 text-[11px] px-2 text-muted-foreground hover:text-foreground font-medium cursor-pointer"
+										onclick={() => {
+											dateRange = {
+												start: undefined,
+												end: undefined,
+											};
+										}}
+									>
+										Semua
+									</Button.Root>
+								</div>
 							</div>
 							<RangeCalendar
 								bind:value={dateRange}
@@ -1147,7 +1175,8 @@
 								<Pagination.Item>
 									<Pagination.Link
 										page={pageItem}
-										isActive={currentPage === pageItem.value}
+										isActive={currentPage ===
+											pageItem.value}
 										class={cn(
 											"size-8 text-xs font-semibold rounded-md cursor-pointer transition-colors shadow-xs flex items-center justify-center",
 											currentPage === pageItem.value
