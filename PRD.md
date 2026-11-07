@@ -531,6 +531,96 @@ Modul E-Commerce menyediakan integrasi multi-channel marketplace terpusat untuk 
 
 ---
 
+### 6.9 Data Module (`/data`)
+
+Modul analitik bisnis, evaluasi laba rugi transaksi, pengaturan biaya operasional, dan valuasi aset modal inventaris secara menyeluruh.
+
+#### 6.9.1 Sub-Module: Performance (`/data/performance`)
+- **Tujuan:** Analisis mendalam performa finansial berdasarkan transaksi pesanan (Orders) dan performa per produk (Product).
+- **Menu Hirarki:** `Data` -> `Performance` (path: `/data/performance`).
+- **Navigasi Tabs:**
+  1. **Tab Orders:**
+     - **4 Kartu Metrik KPI (Responsif Terhadap Filter):**
+       - **Revenue:** Total omzet kotor pesanan terfilter (format Rupiah).
+       - **HPP Total:** Akumulasi Harga Pokok Penjualan dari produk yang terpesan.
+       - **Profit:** Laba bersih kotor (`Revenue - HPP Total`).
+       - **Orders:** Total volume pesanan dengan rincian breakdown status (*Completed*, *Processing/Pending*, *Cancelled*).
+     - **Filter Bar Komprehensif (Full Width):**
+       - Search input dengan dropdown selektor (*Order Number* vs *Product Name*), dikirimkan hanya saat tombol **Cari** ditekan (*explicit request on button click*).
+       - Date Range Picker (*Order Date Range*) dengan preset instan (*Hari Ini*, *7 Hari*, *30 Hari*, *Semua*).
+       - Dropdown filter: *Platform* (Shopee, Tokopedia, TikTok Shop, Lazada), *Warehouse*, *Shopee Account*, dan *Status*.
+       - Tombol **Reset Filter**.
+     - **Tabel Data Transaksi Pesanan:**
+       - Checkbox seleksi baris.
+       - *Order Number* (e.g. `ID20261030001`) dengan aksi salin clipboard cepat.
+       - *Order Date* (format: `DD/MM/YYYY`, sortable).
+       - *Status* (Completed, Pending, Processing, Cancelled) dengan badge warna representatif (sortable).
+       - *Product* (Nama Produk).
+       - *SKU* (e.g. `PBO-ELC-001-STD`).
+       - *Qty* (Kuantitas unit pesanan).
+       - *Revenue* (format Rupiah, sortable).
+       - *HPP / Unit* (format Rupiah).
+       - *HPP Total* (format Rupiah).
+       - *Profit* (format Rupiah, sortable).
+     - **Sorting Header Kolom:** `Order Date`, `Status`, `Revenue`, `Profit`.
+     - **Pagination:** Minimum 10 per page (opsi 10, 20, 50, 100) dengan tombol navigasi *Previous* & *Next* yang persisten.
+  2. **Tab Product:**
+     - **Header Bar Modul:** Judul ("Performa Produk") dan sub-judul kegunaan berdampingan dengan tombol **Export Data** (`justify-between items-center`).
+     - **Filter Bar (Full Width):** Kolom pencarian produk (Nama / SKU), filter tanggal dibuat (*Date Range Picker*), tombol **Cari** (eksekusi filter), dan tombol **Reset**.
+     - **Tabel Performa Produk:**
+       - Checkbox seleksi baris.
+       - *Product* (Thumbnail foto produk, Nama Produk, SKU).
+       - *Sold* (Jumlah unit terjual, sortable).
+       - *Revenue* (Total akumulasi omzet penjualan produk).
+       - *CreatedAt* (Tanggal pendaftaran produk di sistem, format: `DD/MM/YYYY`).
+       - *Action:* Tombol icon detail membuka **Dialog Rincian Kanal** yang menampilkan sebaran platform e-commerce mana saja yang menyumbang penjualan (Shopee, Tokopedia, TikTok Shop, Lazada), kuantitas unit, omzet, dan bar persentase kontribusi.
+     - **Sorting Header Kolom:** `Sold`.
+     - **Pagination:** Minimum 10 per page.
+
+#### 6.9.2 Sub-Module: Cost (`/data/cost`)
+- **Tujuan:** Pengaturan struktur dan konfigurasi beban biaya operasional bisnis omni-channel.
+- **Menu Hirarki:** `Data` -> `Cost` (path: `/data/cost`).
+- **4 Kartu Ringkasan KPI:** Total Beban Operasional Bulanan, Beban Layanan Per Pesanan, Beban Gaji Karyawan, dan Cadangan Biaya Tidak Terduga.
+- **3 Kategori Pengaturan Biaya Operasional:**
+  1. **Operasional Layanan Per Pesanan:**
+     - Biaya penanganan dan packing staf (flat per pesanan).
+     - Biaya material packaging (bubble wrap, lakban, polymailer, kertas thermal resi).
+     - Biaya komisi admin marketplace & payment gateway (persentase omzet).
+  2. **Operasional Gaji:**
+     - Gaji pokok operator gudang & tim fulfillment.
+     - Gaji staf admin marketplace & customer service.
+     - Gaji lead supervisor / warehouse manager.
+     - Insentif lembur dan shift campaign flash sale.
+  3. **Operasional Tidak Terduga:**
+     - Plafon talangan penggantian barang hilang / rusak ekspedisi.
+     - Servis darurat scanner barcode & printer label thermal.
+     - Subsidi ongkir klaim retur pelanggan.
+     - Bahan bakar genset & internet cadangan gudang.
+- **Fitur Interaktif:** Modal dialog tambah/edit komponen biaya, switch aktivasi status aktif/non-aktif, dan tombol simpan pengaturan dengan toast feedback.
+
+#### 6.9.3 Sub-Module: Asset (`/data/asset`)
+- **Tujuan:** Monitoring nilai valuasi aset modal stok fisik dan persebaran inventaris di seluruh fasilitas gudang.
+- **Menu Hirarki:** `Data` -> `Asset` (path: `/data/asset`).
+- **Header Bar Modul:** Judul ("Nilai Aset & Valuasi Stok") dan sub-judul kegunaan berdampingan dengan tombol **Export Laporan Aset** (`justify-between items-center`).
+- **3 Kartu Ringkasan Valuasi Aset:**
+  1. **Total Asset:** Nilai total modal (`Σ Qty * HPP`) yang dihitung secara dinamis berdasarkan seluruh produk di gudang yang dipilih atau keseluruhan sistem.
+  2. **Total Product:** Jumlah ragam varian produk master yang terdaftar dalam valuasi aset.
+  3. **Total Warehouse:** Jumlah total fasilitas gudang aktif penyimpanan stok.
+- **Filter Bar:** Kolom pencarian Nama Produk / SKU, dropdown pemilih gudang (*Semua Gudang* vs gudang spesifik), dan tombol Reset.
+- **Tabel Valuasi Aset:**
+  - Checkbox seleksi baris.
+  - Icon toggle expand/collapse baris per SKU.
+  - *Product* (Thumbnail foto produk, Nama Produk, SKU).
+  - *HPP / Unit* (Nilai modal pokok satuan).
+  - *Qty* (Jumlah total unit fisik tersedia, sortable).
+  - *Amount* (Total valuasi aset modal produk = `Qty * HPP`, sortable).
+- **Fitur Baris Collapsible per SKU:**
+  - Menampilkan panel breakdown persebaran unit di setiap gudang (Nama Gudang, Lokasi Rak Spesifik, Kuantitas Unit, Valuasi Aset per Gudang, dan indikator status stok *Aman* / *Menipis*).
+- **Sorting Header Kolom:** `Qty`, `Amount`.
+- **Pagination:** Minimum 10 per page (opsi 10, 20, 50, 100) dengan tombol navigasi *Previous* & *Next* yang persisten.
+
+---
+
 ## 7. Recommended Directory Structure
 
 ```text
@@ -561,6 +651,14 @@ omni-app/
 │   │   │   │   │   └── +page.svelte # Integration (Store List, Connect Store OAuth Modal)
 │   │   │   │   └── setting/
 │   │   │   │       └── +page.svelte # Setting (Webhook Callback, Event Push, Stock Deduction)
+│   │   │   ├── data/
+│   │   │   │   ├── +page.ts      # Redirect ke /data/performance
+│   │   │   │   ├── performance/
+│   │   │   │   │   └── +page.svelte # Data Performance (Tabs: Orders & Product, 4 Cards, Full Filter, Sort, Dialog Detail)
+│   │   │   │   ├── cost/
+│   │   │   │   │   └── +page.svelte # Operational Cost (3 Kategori Biaya, KPI Cards, Modal Add/Edit, Switch Status)
+│   │   │   │   └── asset/
+│   │   │   │       └── +page.svelte # Asset Valuation (3 Cards, Warehouse Filter, Collapsible per SKU, Sort Qty/Amount)
 │   │   │   ├── pos/
 │   │   │   │   ├── +page.ts      # Redirect ke /pos/transaction
 │   │   │   │   ├── transaction/
@@ -761,6 +859,16 @@ AI Agent harus mengeksekusi project ini secara bertahap dengan urutan logis beri
    - **POS Transactions (`/pos/transaction`):** Tabel riwayat transaksi kasir, pencarian Transaction ID, filter gudang, sorting `Date`, checkbox seleksi baris, kuantitas item, total pembayaran Rupiah, aksi dropdown (Detail, Edit, Delete), pagination min 10, serta tombol navigasi menuju `/cashier`.
    - **POS Setting (`/pos/setting`):** Konfigurasi generator Transaction ID (prefix, format token tanggal, panjang digit counter, separator, jadwal reset), live interactive preview, dan preferensi register kasir default.
    - **Dedicated Standalone Cashier (`/cashier`):** Antarmuka register kasir mandiri bebas distraksi di luar dashboard, pencarian produk cepat, katalog per kategori, keranjang belanja interaktif, kalkulasi PPN & kembalian, ragam metode pembayaran (Cash, QRIS, Debit, Credit), dan generator struk transaksi.
+9. **E-Commerce Module (`/ecommerce`):**
+   - **Orders (`/ecommerce/orders`):** Manajemen pesanan multi-kanal, baris bergaya kartu dengan header marketplace, filter rentang tanggal (*Date Range Picker*) dengan default "Hari Ini", preset cepat, sorting dan pagination persisten.
+   - **Mass Shipping (`/ecommerce/orders/mass-shipping`):** Pemrosesan resi massal multi-kanal, alokasi gudang, dan pencetakan batch label pengiriman.
+   - **Copy Product (`/ecommerce/copy`):** Duplikasi dan sinkronisasi katalog e-commerce (Tabs: Product, Draft, Copied).
+   - **Integration (`/ecommerce/integration`):** Manajemen otorisasi toko dan koneksi platform marketplace.
+   - **Setting (`/ecommerce/setting`):** Konfigurasi webhook event push dan aturan otomatis pemotongan stok.
+10. **Data Module (`/data`):**
+    - **Performance (`/data/performance`):** Analisis performa berdasarkan *Orders* (4 kartu KPI dinamis terhadap filter, bar filter full-width dengan dropdown search type + tombol Cari, sorting tanggal/status/revenue/profit, pagination min 10) dan *Product* (header modul dengan tombol export, pencarian produk full-width, filter date range, sorting sold, serta dialog breakdown sebaran kanal e-commerce).
+    - **Cost (`/data/cost`):** Konfigurasi dan alokasi biaya operasional (*Operasional Layanan Per Pesanan*, *Operasional Gaji*, *Operasional Tidak Terduga*), KPI cards total beban operasional, modal dialog tambah/edit komponen, dan switch aktivasi.
+    - **Asset (`/data/asset`):** Valuasi total modal stok inventaris (`Qty * HPP`), 3 kartu KPI (*Total Asset*, *Total Product*, *Total Warehouse*), filter gudang fleksibel, collapsible baris per SKU dengan rincian per gudang, sorting Qty & Amount, serta pagination min 10.
 
 ### Phase 7: Code Review, Cleanliness & Verification
 1. Jalankan `bun run check` (Svelte/TypeScript verification) untuk memastikan tidak ada type error.

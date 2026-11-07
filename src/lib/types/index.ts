@@ -270,3 +270,5 @@ export interface EcommerceSettingsConfig {
 	safetyStockBuffer: number;
 }
 
+export * from "./data-module.js";
+
