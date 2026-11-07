@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Component } from "svelte";
+	import type { Component, Snippet } from "svelte";
 	import * as Card from "$lib/components/ui/card/index.js";
 	import TrendingUpIcon from "@lucide/svelte/icons/trending-up";
 	import TrendingDownIcon from "@lucide/svelte/icons/trending-down";
@@ -12,7 +12,10 @@
 		trend = "neutral",
 		trendValue,
 		icon: IconComponent,
-		class: className
+		class: className,
+		valueClass,
+		iconContainerClass,
+		children,
 	}: {
 		title: string;
 		value: string | number;
@@ -21,6 +24,9 @@
 		trendValue?: string;
 		icon?: Component<{ class?: string }>;
 		class?: string;
+		valueClass?: string;
+		iconContainerClass?: string;
+		children?: Snippet;
 	} = $props();
 </script>
 
@@ -28,16 +34,20 @@
 	<div class="flex items-start justify-between gap-4">
 		<div class="space-y-1">
 			<p class="text-xs font-medium tracking-wider text-muted-foreground uppercase">{title}</p>
-			<h3 class="font-heading text-2xl font-bold tracking-tight text-foreground md:text-3xl">{value}</h3>
+			<h3 class={cn("font-heading text-2xl font-bold tracking-tight text-foreground md:text-3xl", valueClass)}>{value}</h3>
 		</div>
 		{#if IconComponent}
-			<div class="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+			<div class={cn("flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary", iconContainerClass)}>
 				<IconComponent class="size-5.5" />
 			</div>
 		{/if}
 	</div>
 
-	{#if description || trendValue}
+	{#if children}
+		<div class="mt-3">
+			{@render children()}
+		</div>
+	{:else if description || trendValue}
 		<div class="mt-4 flex items-center gap-2 text-xs">
 			{#if trendValue}
 				<span

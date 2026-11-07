@@ -3,6 +3,7 @@
 	import PackageIcon from "@lucide/svelte/icons/package";
 	import StoreIcon from "@lucide/svelte/icons/store";
 	import ShoppingBagIcon from "@lucide/svelte/icons/shopping-bag";
+	import DatabaseIcon from "@lucide/svelte/icons/database";
 	import UsersIcon from "@lucide/svelte/icons/users";
 	import SettingsIcon from "@lucide/svelte/icons/settings";
 	import GalleryVerticalEndIcon from "@lucide/svelte/icons/gallery-vertical-end";
@@ -119,6 +120,31 @@
 					title: t("nav.ecommerceSetting"),
 					url: "/ecommerce/setting",
 					isActive: currentPath.startsWith("/ecommerce/setting"),
+				},
+			],
+		},
+		{
+			title: t("nav.data"),
+			url: "/data/performance",
+			icon: DatabaseIcon,
+			isActive: currentPath.startsWith("/data"),
+			items: [
+				{
+					title: t("nav.dataPerformance"),
+					url: "/data/performance",
+					isActive:
+						currentPath.startsWith("/data/performance") ||
+						currentPath === "/data",
+				},
+				{
+					title: t("nav.dataCost"),
+					url: "/data/cost",
+					isActive: currentPath.startsWith("/data/cost"),
+				},
+				{
+					title: t("nav.dataAsset"),
+					url: "/data/asset",
+					isActive: currentPath.startsWith("/data/asset"),
 				},
 			],
 		},
