@@ -10,10 +10,14 @@
 	import LogOutIcon from "@lucide/svelte/icons/log-out";
 	import SparklesIcon from "@lucide/svelte/icons/sparkles";
 	import { t } from "$lib/i18n/index.js";
+	import { authStore } from "$lib/stores/auth.svelte.js";
+	import { goto } from "$app/navigation";
 
 	let { user }: { user: { name: string; email: string; avatar: string } } =
 		$props();
 	const sidebar = useSidebar();
+
+	const activeUser = $derived(authStore.currentUser || user);
 </script>
 
 <Sidebar.Menu>
@@ -27,7 +31,7 @@
 						{...props}
 					>
 						<Avatar.Root class="size-8 rounded-lg">
-							<Avatar.Image src={user.avatar} alt={user.name} />
+							<Avatar.Image src={activeUser.avatar} alt={activeUser.name} />
 							<Avatar.Fallback class="rounded-lg"
 								>CN</Avatar.Fallback
 							>
@@ -35,9 +39,9 @@
 						<div
 							class="grid flex-1 text-start text-sm leading-tight"
 						>
-							<span class="truncate font-medium">{user.name}</span
+							<span class="truncate font-medium">{activeUser.name}</span
 							>
-							<span class="truncate text-xs">{user.email}</span>
+							<span class="truncate text-xs">{activeUser.email}</span>
 						</div>
 						<ChevronsUpDownIcon class="ms-auto size-4" />
 					</Sidebar.MenuButton>
@@ -54,7 +58,7 @@
 						class="flex items-center gap-2 px-1 py-1.5 text-start text-sm"
 					>
 						<Avatar.Root class="size-8 rounded-lg">
-							<Avatar.Image src={user.avatar} alt={user.name} />
+							<Avatar.Image src={activeUser.avatar} alt={activeUser.name} />
 							<Avatar.Fallback class="rounded-lg"
 								>CN</Avatar.Fallback
 							>
@@ -62,9 +66,9 @@
 						<div
 							class="grid flex-1 text-start text-sm leading-tight"
 						>
-							<span class="truncate font-medium">{user.name}</span
+							<span class="truncate font-medium">{activeUser.name}</span
 							>
-							<span class="truncate text-xs">{user.email}</span>
+							<span class="truncate text-xs">{activeUser.email}</span>
 						</div>
 					</div>
 				</DropdownMenu.Label>
@@ -81,7 +85,13 @@
 					</DropdownMenu.Item>
 				</DropdownMenu.Group>
 				<DropdownMenu.Separator />
-				<DropdownMenu.Item class="gap-2 cursor-pointer">
+				<DropdownMenu.Item
+					class="gap-2 cursor-pointer text-destructive focus:text-destructive"
+					onSelect={() => {
+						authStore.logout();
+						goto("/sign-in");
+					}}
+				>
 					<LogOutIcon class="size-4" />
 					<span>{t("common.logout")}</span>
 				</DropdownMenu.Item>
