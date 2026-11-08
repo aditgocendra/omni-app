@@ -621,6 +621,47 @@ Modul analitik bisnis, evaluasi laba rugi transaksi, pengaturan biaya operasiona
 
 ---
 
+### 6.10 Dedicated Standalone Pages: Startup & Authentication
+
+Halaman mandiri di luar layout `(dashboard)` untuk alur inisialisasi awal aplikasi serta autentikasi login pengguna.
+
+#### 6.10.1 System Startup & Super Admin Setup (`/startup`)
+- **Tujuan:** Formulir inisialisasi sistem saat pertama kali aplikasi dijalankan atau dipasang, digunakan untuk membuat akun master Super Admin dan entitas organisasi toko pertama.
+- **Path:** `/startup` (di luar grup route `(dashboard)`).
+- **Struktur Tampilan & Komponen:**
+  - **Top Navigation Bar:** Logo Cronsyst Omnichannel Platform, LanguageSwitcher (EN/ID), dan ThemeToggle (Light/Dark).
+  - **Card Container Form (shadcn Card):**
+    - **Header:** Badge "First Time System Setup", Judul "Welcome to Cronsyst", dan Sub-judul deskriptif.
+    - **Section 1 (Entitas Bisnis):** Input Nama Toko / Perusahaan (`storeName`) dengan icon gedung.
+    - **Section 2 (Kredensial Super Admin):**
+      - Nama Lengkap (`fullName`) dengan icon pengguna.
+      - Alamat Email Resmi (`email`) dengan validasi format email.
+      - Nomor Telepon / WhatsApp (`phone`).
+      - Kata Sandi Master (`password`) dan Konfirmasi Kata Sandi (`confirmPassword`) dilengkapi tombol toggle sembunyikan/tampilkan kata sandi (Eye / EyeOff).
+      - Indikator validitas syarat kata sandi (minimum 8 karakter dan kesesuaian konfirmasi password).
+    - **Persetujuan Regulasi:** Checkbox persetujuan Ketentuan Layanan, Kebijakan Privasi, dan Tata Kelola Akses Master Administrator.
+    - **Tombol Eksekusi:** Tombol *Create Super Admin & Launch* dengan indikator spinner loading (`Loader2Icon`).
+    - **Footer Card:** Tautan navigasi cepat ke halaman login (`/sign-in`) bagi sistem yang sudah pernah diinisialisasi.
+  - **Penyimpanan State:** Menyimpan data Super Admin dan menandai status inisialisasi (`cronsyst_is_initialized = true`) di `authStore` (`localStorage`).
+
+#### 6.10.2 User Sign-In (`/sign-in`)
+- **Tujuan:** Formulir login terpadu bagi administrator, manajer gudang, dan kasir toko untuk mengakses platform.
+- **Path:** `/sign-in` (di luar grup route `(dashboard)`).
+- **Struktur Tampilan & Komponen:**
+  - **Top Navigation Bar:** Branding Cronsyst, LanguageSwitcher, dan ThemeToggle.
+  - **Card Container Form (shadcn Card):**
+    - Input Email Address dan Kata Sandi dengan toggle show/hide password.
+    - Checkbox *Remember Me* (Ingat perangkat 30 hari).
+    - Tombol teks *Forgot Password?* yang memunculkan modal dialog pemulihan kata sandi (`Dialog.Root`).
+    - Tombol *Sign In* dengan status loading.
+    - **Bar Kredensial Demo Cepat (Quick Demo Logins):** Shortcut satu-klik untuk mengisi dan menguji login dengan akun demo:
+      - *Super Admin* (`admin@cronsyst.com`)
+      - *Warehouse Manager* (`budi.santoso@cronsyst.com`)
+      - *POS Cashier* (`rina.cashier@cronsyst.com`)
+    - **Footer Card:** Tautan navigasi ke halaman `/startup` jika aplikasi belum pernah diinisialisasi.
+
+---
+
 ## 7. Recommended Directory Structure
 
 ```text
@@ -632,6 +673,10 @@ omni-app/
 │   ├── routes/
 │   │   ├── +layout.svelte        # Root layout (Theme provider, i18n store, font wrappers)
 │   │   ├── +layout.ts            # Client load settings
+│   │   ├── startup/
+│   │   │   └── +page.svelte      # Dedicated System Startup & Super Admin Setup (Non-dashboard)
+│   │   ├── sign-in/
+│   │   │   └── +page.svelte      # Dedicated User Sign-In Page (Non-dashboard)
 │   │   ├── cashier/
 │   │   │   └── +page.svelte      # Dedicated Standalone Cashier Register Page (Non-dashboard)
 │   │   ├── (dashboard)/
@@ -701,7 +746,7 @@ omni-app/
 │   │   │   └── locales/
 │   │   │       ├── en.json       # English dictionary (Default)
 │   │   │       └── id.json       # Indonesian dictionary
-│   │   ├── stores/               # Runes/Stores untuk state (theme, language, active filters)
+│   │   ├── stores/               # Runes/Stores untuk state (auth.svelte.ts, active filters)
 │   │   ├── types/                # TypeScript interfaces (Channel, Message, Metric, User)
 │   │   └── utils/                # Utility functions (cn helper, formatters, date utils)
 ├── static/
