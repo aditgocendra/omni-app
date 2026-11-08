@@ -99,6 +99,21 @@
 			];
 		}
 
+		if (currentPath.startsWith("/data")) {
+			let subPage = t("nav.dataPerformance");
+			if (currentPath.startsWith("/data/cost")) {
+				subPage = t("nav.dataCost");
+			} else if (currentPath.startsWith("/data/asset")) {
+				subPage = t("nav.dataAsset");
+			} else if (currentPath.startsWith("/data/performance")) {
+				subPage = t("nav.dataPerformance");
+			}
+			return [
+				{ label: t("nav.data"), href: "/data/performance" },
+				{ label: subPage },
+			];
+		}
+
 		if (currentPath.startsWith("/settings")) {
 			let subPage = t("nav.general");
 			if (currentPath.startsWith("/settings/account")) {

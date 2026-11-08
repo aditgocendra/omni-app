@@ -1,6 +1,6 @@
 <script lang="ts">
 	import BoxIcon from "@lucide/svelte/icons/box";
-	import PackageIcon from "@lucide/svelte/icons/package";
+	import LayoutGridIcon from "@lucide/svelte/icons/layout-grid";
 	import StoreIcon from "@lucide/svelte/icons/store";
 	import ShoppingBagIcon from "@lucide/svelte/icons/shopping-bag";
 	import DatabaseIcon from "@lucide/svelte/icons/database";
@@ -26,7 +26,7 @@
 		{
 			title: t("nav.product"),
 			url: "/product/manage",
-			icon: PackageIcon,
+			icon: LayoutGridIcon,
 			isActive: currentPath.startsWith("/product"),
 			items: [
 				{
@@ -205,7 +205,11 @@
 					size="lg"
 					class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 				>
-					{#snippet child({ props }: { props: Record<string, unknown> })}
+					{#snippet child({
+						props,
+					}: {
+						props: Record<string, unknown>;
+					})}
 						<a href="/" {...props}>
 							<div
 								class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground shadow-xs"
