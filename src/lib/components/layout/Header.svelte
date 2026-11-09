@@ -93,6 +93,13 @@
 
 		if (currentPath.startsWith("/user")) {
 			let subPage = t("nav.manageUser");
+			if (currentPath.startsWith("/user/role")) {
+				subPage = t("nav.userRole");
+			} else if (currentPath.startsWith("/user/access")) {
+				subPage = t("nav.userAccess");
+			} else if (currentPath.startsWith("/user/manage")) {
+				subPage = t("nav.manageUser");
+			}
 			return [
 				{ label: t("nav.user"), href: "/user/manage" },
 				{ label: subPage },

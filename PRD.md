@@ -286,6 +286,69 @@ Modul User Management bertugas mengelola hak akses akun pengguna, penetapan pera
   - **Minimum Per Page adalah 10** (`perPage = 10`).
   - Opsi pilihan pagination: `10, 20, 50, 100`.
 
+#### 6.5.2 Sub-Module: Role (`/user/role`)
+- **Tujuan:** Manajemen definisi peran pengguna (roles), pembuatan peran kustom organisasi, pemeliharaan deskripsi wewenang, dan monitoring alokasi akun pengguna aktif per role.
+- **Menu Hirarki:** `User` (menu utama) -> `Role` (sub menu, path: `/user/role`).
+- **Header & Action Bar:**
+  - Layout: `justify-between items-center`.
+  - Konten: Judul modul (*Role*) dan Sub-judul (*Manage user role definitions, descriptions, and user assignments across the platform*).
+  - Tombol Utama: `+ Create Role` (Membuka dialog modal pembuatan role baru dengan warna primary dan icon plus).
+- **Search & Filter Controls:**
+  - Layout: Full width responsif (`w-full flex flex-col gap-3 lg:flex-row lg:items-center`), sejajar tanpa pembungkus card berlebih.
+  - Search input: Live search berdasarkan `name`, `key`, dan `description`, dilengkapi clear button (`XIcon`).
+  - Filter status: *All Status*, *Active*, dan *Disable*.
+  - Tombol Reset: Mengembalikan parameter pencarian dan filter ke default.
+- **Spesifikasi Tabel Data:**
+  - `Role Name`: Nama peran dilengkapi inisial avatar visual dan badge penanda status peran (*System* dengan badge secondary terlindungi vs *Custom* dengan badge outline).
+  - `Key Identifier`: Kode mesin unik sistem dalam format font mono (contoh: `super_admin`, `warehouse_manager`).
+  - `Users`: Total pengguna aktif yang memegang role tersebut dilengkapi ikon users.
+  - `Status`: Tombol interaktif switch/badge status (*Active* / *Disable*) yang dapat di-toggle langsung dengan notifikasi toast.
+  - `CreatedAt`: Tanggal pendaftaran role dalam format `DD/MM/YYYY`.
+  - `Actions`: Tombol aksi cepat **Manage Access** (menghubungkan langsung ke `/user/access?role={key}`) dan dropdown menu **Edit** serta **Delete** (role sistem dilindungi dan tidak dapat dihapus).
+- **Dialog Modal Create & Edit Role:**
+  - Input Nama Role dengan auto-slugify otomatis ke field Role Key saat pembuatan baru.
+  - Field Role Key bersifat read-only saat pengeditan guna menjaga integritas permission mapping.
+  - Textarea deskripsi peran dan selektor status (*Active / Disable*).
+- **Dialog Konfirmasi Hapus (`ConfirmDialog`):**
+  - Mencegah penghapusan role bawaan sistem (`isSystem: true`).
+  - Meminta konfirmasi eksplisit sebelum menghapus role kustom dan memberi peringatan dampak pelepasan hak akses pengguna.
+- **Spesifikasi Tabel Data & Pagination:**
+  - Komponen: Menggunakan reusable composite component `DataTable` (`$lib/components/common/DataTable.svelte`).
+  - Fitur Otomatis: Sorting dua arah (Ascending/Descending) pada kolom `name`, `key`, `usersCount`, `status`, dan `createdAt`.
+  - Pagination Bawaan: shadcn-svelte `Pagination.Root` dengan tombol Previous, page links, ellipsis, dan Next.
+  - Per Page: Minimum 10 per page (`perPage = 10`), dengan opsi pilihan dropdown: `10, 20, 50, 100`.
+  - Informasi Status: Menampilkan keterangan posisi baris (*Showing start - end of total roles*).
+  - Auto-reset: Halaman aktif otomatis kembali ke halaman 1 saat parameter pencarian atau filter status berubah.
+
+#### 6.5.3 Sub-Module: Access (`/user/access`)
+- **Tujuan:** Konfigurasi matriks hak akses fitur dan perizinan granular (*granular permissions*) untuk setiap peran operasional terhadap modul-modul sistem aplikasi.
+- **Menu Hirarki:** `User` (menu utama) -> `Access` (sub menu, path: `/user/access`).
+- **Header & Action Bar:**
+  - Layout: `justify-between items-center`.
+  - Konten: Judul modul (*Access*) dan Sub-judul (*Configure feature permissions and access rights for each operational user role*).
+  - Tombol Utama: **Save Permissions** dengan state loading spinner saat proses penyimpanan dan toast feedback.
+- **Role Switcher & Overview Header:**
+  - Selektor dropdown role berukuran tetap (`w-64` / fixed width) dengan text truncation agar tidak mengalami pergeseran ukuran (jitter) saat berganti pilihan antar role dengan panjang nama berbeda, dilengkapi baris quick pills role buttons untuk peralihan cepat antar-peran.
+  - Terintegrasi dengan URL query parameter (`/user/access?role={key}`) untuk direct navigation dari halaman Role.
+  - Card ringkasan role aktif: nama, badge jenis role (*System / Custom*), kode key, dan deskripsi wewenang.
+  - Bar meter persentase dan indikator jumlah akses (*X of Y permissions granted*).
+  - Alert proteksi khusus Super Admin: Notifikasi informatif bahwa peran Super Admin memiliki hak akses penuh tanpa batasan demi kontinuitas keamanan sistem.
+- **Search & Quick Action Toolbar:**
+  - Layout toolbar full width (`w-full`) responsif mengisi seluruh lebar layar tampilan tanpa batasan max-width sempit ataupun double-padding.
+  - Live search input full-width (`flex-1 w-full`) dengan tinggi standar `h-10`, rounded border, ikon search, dan clear button (`XIcon`) untuk menyaring hak akses berdasarkan nama aksi, deskripsi wewenang, modul, atau action tag.
+  - Filter dropdown modul berukuran tetap (`w-full sm:w-56 shrink-0`, tinggi `h-10`) (*All Modules*, *Dashboard & Overview*, *Product Catalog*, *Inventory & Warehouses*, *Point of Sale*, *E-Commerce & Orders*, *Data Analytics*, *User Management*, *Settings*).
+  - Tombol Aksi Massal dengan tinggi seragam `h-10`:
+    - **Grant All Permissions:** Mengaktifkan seluruh hak akses untuk role terpilih.
+    - **Revoke All:** Menonaktifkan seluruh hak akses sekaligus.
+    - **Reset to Defaults:** Mengembalikan konfigurasi hak akses role ke template bawaan awal.
+- **Struktur Matriks Perizinan Berbasis Modul:**
+  - Pengelompokan modular terstruktur dengan header modul, deskripsi lingkup, penghitung aksi aktif, dan tombol toggle per modul (*Grant / Revoke Module*).
+  - Grid kartu hak akses granular dengan:
+    - Label nama perizinan yang jelas dan mudah dipahami.
+    - Kode permission unik (contoh: `inventory.transfer.approve`, `data.cost.manage`).
+    - Badge kategori aksi berwarna (*View* biru, *Create* hijau, *Edit* kuning, *Delete* merah, *Manage* ungu, *Export* indigo).
+    - Komponen interaktif **Switch** untuk aktivasi/deaktivasi hak akses secara presisi (terkunci otomatis pada peran Super Admin).
+
 ### 6.6 Module 5: Product Management System (`/product`)
 Modul Product mengelola katalog produk omni-channel, varian produk terperinci, kategori retail terstandarisasi, dan manajemen brand/merk produsen.
 
@@ -722,8 +785,12 @@ omni-app/
 │   │   │   │       └── +page.svelte # Merk (Brand Name, Products Count, Sort, Search)
 │   │   │   ├── user/
 │   │   │   │   ├── +page.ts      # Redirect ke /user/manage
-│   │   │   │   └── manage/
-│   │   │   │       └── +page.svelte # Manage User (Table User, Role, Switch Status, CreatedAt Sort)
+│   │   │   │   ├── manage/
+│   │   │   │   │   └── +page.svelte # Manage User (Table User, Role, Switch Status, CreatedAt Sort)
+│   │   │   │   ├── role/
+│   │   │   │   │   └── +page.svelte # Role Management (Table Role, System/Custom Badge, KPI Cards, Modal Add/Edit, Confirm Delete)
+│   │   │   │   └── access/
+│   │   │   │       └── +page.svelte # Access Matrix (Role Selector, Super Admin Notice, Module Permission Groups, Granular Switches, Save)
 │   │   │   └── inventory/
 │   │   │       ├── +page.ts      # Redirect ke /inventory/warehouse
 │   │   │       ├── warehouse/

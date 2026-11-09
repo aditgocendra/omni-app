@@ -161,6 +161,16 @@
 						currentPath.startsWith("/user/manage") ||
 						currentPath === "/user",
 				},
+				{
+					title: t("nav.userRole"),
+					url: "/user/role",
+					isActive: currentPath.startsWith("/user/role"),
+				},
+				{
+					title: t("nav.userAccess"),
+					url: "/user/access",
+					isActive: currentPath.startsWith("/user/access"),
+				},
 			],
 		},
 		{

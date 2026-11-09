@@ -271,4 +271,5 @@ export interface EcommerceSettingsConfig {
 }
 
 export * from "./data-module.js";
+export * from "./role-access.js";
 
