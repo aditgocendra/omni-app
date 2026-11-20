@@ -23,6 +23,8 @@
 	interface Props {
 		data: T[];
 		columns: DataTableColumn<T>[];
+		totalCount?: number;
+		manualPagination?: boolean;
 		page?: number;
 		perPage?: number;
 		perPageOptions?: number[];
@@ -82,6 +84,8 @@
 	let {
 		data = [],
 		columns = [],
+		totalCount,
+		manualPagination = false,
 		page = $bindable(1),
 		perPage = $bindable(10),
 		perPageOptions = [5, 10, 20, 50],
@@ -174,7 +178,7 @@
 		});
 	});
 
-	const totalItems = $derived(sortedData.length);
+	const totalItems = $derived(totalCount ?? sortedData.length);
 	const totalPages = $derived(Math.max(1, Math.ceil(totalItems / perPage)));
 
 	// Keep page within valid bounds
@@ -187,7 +191,7 @@
 	});
 
 	const paginatedData = $derived.by(() => {
-		if (!showPagination) return sortedData;
+		if (!showPagination || manualPagination) return sortedData;
 		const start = (page - 1) * perPage;
 		const end = start + perPage;
 		return sortedData.slice(start, end);
@@ -600,20 +604,20 @@
 				{/if}
 			</div>
 
-			{#if showPagination && totalPages > 1}
+			{#if showPagination}
 				<div class="flex items-center justify-end w-full sm:w-auto">
 					<Pagination.Root
-						count={totalItems}
+						count={Math.max(totalItems, 1)}
 						{perPage}
 						bind:page
 						siblingCount={1}
 						class="mx-0 w-auto"
 					>
 						{#snippet children({ pages, currentPage })}
-							<Pagination.Content class="gap-1">
+							<Pagination.Content class="gap-1 flex items-center">
 								<Pagination.Item>
 									<Pagination.Previous
-										class="h-8 px-2.5 text-xs font-medium rounded-md cursor-pointer bg-white dark:bg-card text-foreground hover:bg-slate-50 dark:hover:bg-muted border border-border/80 shadow-xs transition-colors"
+										class="h-8 px-2.5 text-xs font-medium rounded-md cursor-pointer bg-white dark:bg-card text-foreground hover:bg-slate-50 dark:hover:bg-muted border border-border/80 shadow-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
 									/>
 								</Pagination.Item>
 								{#each pages as pageItem (pageItem.key)}
@@ -630,7 +634,7 @@
 												isActive={currentPage ===
 													pageItem.value}
 												class={cn(
-													"size-8 text-xs font-semibold rounded-md cursor-pointer transition-colors shadow-xs",
+													"size-8 text-xs font-semibold rounded-md cursor-pointer transition-colors shadow-xs flex items-center justify-center",
 													currentPage ===
 														pageItem.value
 														? "bg-primary! text-white! border-primary! hover:bg-primary/90! hover:text-white!"
@@ -644,7 +648,7 @@
 								{/each}
 								<Pagination.Item>
 									<Pagination.Next
-										class="h-8 px-2.5 text-xs font-medium rounded-md cursor-pointer bg-white dark:bg-card text-foreground hover:bg-slate-50 dark:hover:bg-muted border border-border/80 shadow-xs transition-colors"
+										class="h-8 px-2.5 text-xs font-medium rounded-md cursor-pointer bg-white dark:bg-card text-foreground hover:bg-slate-50 dark:hover:bg-muted border border-border/80 shadow-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
 									/>
 								</Pagination.Item>
 							</Pagination.Content>

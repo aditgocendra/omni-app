@@ -1,21 +1,16 @@
 <script lang="ts">
 	import * as Card from "$lib/components/ui/card/index.js";
 	import * as Button from "$lib/components/ui/button/index.js";
-	import * as Dialog from "$lib/components/ui/dialog/index.js";
 	import { Input } from "$lib/components/ui/input/index.js";
 	import { Label } from "$lib/components/ui/label/index.js";
-	import { Checkbox } from "$lib/components/ui/checkbox/index.js";
-	import { Badge } from "$lib/components/ui/badge/index.js";
 	import { Separator } from "$lib/components/ui/separator/index.js";
-	import LanguageSwitcher from "$lib/components/layout/LanguageSwitcher.svelte";
-	import ThemeToggle from "$lib/components/layout/ThemeToggle.svelte";
-	import { authStore, DEMO_ACCOUNTS } from "$lib/stores/auth.svelte.js";
+	import { authStore } from "$lib/stores/auth.svelte.js";
+	import { extractUnknownErrorMessage } from "$lib/types/api.js";
 	import { t } from "$lib/i18n/index.js";
-	import { goto } from "$app/navigation";
+	import { goto, invalidateAll } from "$app/navigation";
 	import { page } from "$app/state";
 
 	// Icons
-	import GalleryVerticalEndIcon from "@lucide/svelte/icons/gallery-vertical-end";
 	import MailIcon from "@lucide/svelte/icons/mail";
 	import LockIcon from "@lucide/svelte/icons/lock";
 	import EyeIcon from "@lucide/svelte/icons/eye";
@@ -24,15 +19,10 @@
 	import AlertCircleIcon from "@lucide/svelte/icons/alert-circle";
 	import ArrowRightIcon from "@lucide/svelte/icons/arrow-right";
 	import Loader2Icon from "@lucide/svelte/icons/loader-2";
-	import KeyRoundIcon from "@lucide/svelte/icons/key-round";
-	import ShieldIcon from "@lucide/svelte/icons/shield";
-	import PackageIcon from "@lucide/svelte/icons/package";
-	import StoreIcon from "@lucide/svelte/icons/store";
 
 	// Form State
-	let email = $state("admin@cronsyst.com");
-	let password = $state("password123");
-	let rememberMe = $state(true);
+	let email = $state("");
+	let password = $state("");
 
 	// UI State
 	let showPassword = $state(false);
@@ -71,30 +61,24 @@
 
 		isLoading = true;
 
-		setTimeout(() => {
-			const res = authStore.login(email, password);
+		try {
+			const res = await authStore.login(email, password);
 			isLoading = false;
 
 			if (res.success) {
 				successMessage = t("auth.signIn.successNotice");
-				setTimeout(() => {
-					goto("/");
-				}, 700);
+				await invalidateAll();
+				await goto("/");
 			} else {
 				errorMessage =
 					res.message || t("auth.signIn.invalidCredentials");
 			}
-		}, 600);
-	}
-
-	function handleDemoQuickFill(
-		roleKey: "superAdmin" | "warehouseManager" | "cashier",
-	) {
-		const target = DEMO_ACCOUNTS[roleKey];
-		if (target) {
-			email = target.user.email;
-			password = target.password;
-			errorMessage = null;
+		} catch (err: unknown) {
+			isLoading = false;
+			errorMessage = extractUnknownErrorMessage(
+				err,
+				t("auth.signIn.invalidCredentials"),
+			);
 		}
 	}
 
