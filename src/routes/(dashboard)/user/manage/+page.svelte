@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from "svelte";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
 	import * as Button from "$lib/components/ui/button/index.js";
 	import { buttonVariants } from "$lib/components/ui/button/index.js";
@@ -15,6 +16,18 @@
 	import { t } from "$lib/i18n/index.js";
 	import { cn } from "$lib/utils.js";
 	import type { UserRecord, UserStatus } from "$lib/types/index.js";
+	import {
+		type BackendUser,
+		type RoleDetailData,
+		type UserListResponseData,
+		type CreateUserRequestPayload,
+		type UpdateUserRequestPayload,
+		type BackendUserStatus,
+		type ApiResponse,
+		isApiSuccess,
+		extractApiErrorMessage,
+		extractUnknownErrorMessage,
+	} from "$lib/types/api.js";
 
 	import PlusIcon from "@lucide/svelte/icons/plus";
 	import SearchIcon from "@lucide/svelte/icons/search";
@@ -31,144 +44,18 @@
 	import CopyIcon from "@lucide/svelte/icons/copy";
 	import RefreshCwIcon from "@lucide/svelte/icons/refresh-cw";
 
-	// Initial mock dataset matching user specifications
-	let users = $state<UserRecord[]>([
-		{
-			id: "usr-1",
-			name: "Yono Bakrie",
-			email: "example@cronsyst.com",
-			role: "Super Admin",
-			status: "active",
-			createdAt: "18/02/2026",
-			phone: "+62 812-3456-7890",
-		},
-		{
-			id: "usr-2",
-			name: "Siti Nurhaliza",
-			email: "siti.nur@cronsyst.com",
-			role: "Admin",
-			status: "active",
-			createdAt: "20/02/2026",
-			phone: "+62 813-8899-1234",
-		},
-		{
-			id: "usr-3",
-			name: "Budi Santoso",
-			email: "budi.santoso@cronsyst.com",
-			role: "Warehouse Manager",
-			status: "active",
-			createdAt: "15/01/2026",
-			phone: "+62 821-4567-8901",
-		},
-		{
-			id: "usr-4",
-			name: "Dewi Sartika",
-			email: "dewi.sartika@cronsyst.com",
-			role: "Inventory Staff",
-			status: "active",
-			createdAt: "10/03/2026",
-			phone: "+62 856-7890-1234",
-		},
-		{
-			id: "usr-5",
-			name: "Ahmad Fauzi",
-			email: "ahmad.fauzi@cronsyst.com",
-			role: "Warehouse Manager",
-			status: "disable",
-			createdAt: "22/01/2026",
-			phone: "+62 878-1122-3344",
-		},
-		{
-			id: "usr-6",
-			name: "Hendra Gunawan",
-			email: "hendra.g@cronsyst.com",
-			role: "Cashier",
-			status: "active",
-			createdAt: "14/02/2026",
-			phone: "+62 819-9988-7766",
-		},
-		{
-			id: "usr-7",
-			name: "Maya Safitri",
-			email: "maya.safitri@cronsyst.com",
-			role: "Admin",
-			status: "active",
-			createdAt: "01/02/2026",
-			phone: "+62 812-9876-5432",
-		},
-		{
-			id: "usr-8",
-			name: "Rizky Pratama",
-			email: "rizky.p@cronsyst.com",
-			role: "Inventory Staff",
-			status: "disable",
-			createdAt: "25/02/2026",
-			phone: "+62 857-1234-5678",
-		},
-		{
-			id: "usr-9",
-			name: "Anisa Rahma",
-			email: "anisa.rahma@cronsyst.com",
-			role: "Cashier",
-			status: "active",
-			createdAt: "05/01/2026",
-			phone: "+62 813-7766-5544",
-		},
-		{
-			id: "usr-10",
-			name: "Eko Prasetyo",
-			email: "eko.prasetyo@cronsyst.com",
-			role: "Warehouse Manager",
-			status: "active",
-			createdAt: "12/03/2026",
-			phone: "+62 822-3344-5566",
-		},
-		{
-			id: "usr-11",
-			name: "Denny Caknan",
-			email: "denny.c@cronsyst.com",
-			role: "Inventory Staff",
-			status: "disable",
-			createdAt: "08/02/2026",
-			phone: "+62 811-2233-4455",
-		},
-		{
-			id: "usr-12",
-			name: "Fajar Alfian",
-			email: "fajar.alfian@cronsyst.com",
-			role: "Admin",
-			status: "active",
-			createdAt: "19/01/2026",
-			phone: "+62 815-6677-8899",
-		},
-		{
-			id: "usr-13",
-			name: "Rian Ardianto",
-			email: "rian.ardianto@cronsyst.com",
-			role: "Cashier",
-			status: "active",
-			createdAt: "28/02/2026",
-			phone: "+62 817-4455-6677",
-		},
-		{
-			id: "usr-14",
-			name: "Greysia Polii",
-			email: "greysia.p@cronsyst.com",
-			role: "Super Admin",
-			status: "active",
-			createdAt: "02/01/2026",
-			phone: "+62 818-8877-6655",
-		},
-		{
-			id: "usr-15",
-			name: "Anthony Ginting",
-			email: "anthony.g@cronsyst.com",
-			role: "Inventory Staff",
-			status: "disable",
-			createdAt: "11/02/2026",
-			phone: "+62 812-1133-5577",
-		},
-	]);
+	interface RoleOption {
+		id: string;
+		name: string;
+		key: string;
+	}
+
+	// State
+	let users = $state<UserRecord[]>([]);
+	let isLoadingUsers = $state(true);
+	let totalUsersCount = $state(0);
+	let roles = $state<RoleOption[]>([]);
+	let isRolesLoading = $state(false);
 
 	// Filter, Sort & Pagination states
 	let searchQuery = $state("");
@@ -202,13 +89,17 @@
 	let formPhone = $state("");
 	let formPassword = $state("");
 
-	const roleOptions = [
+	const fallbackRoles = [
 		"Super Admin",
 		"Admin",
 		"Warehouse Manager",
 		"Inventory Staff",
 		"Cashier",
 	];
+
+	const roleOptions = $derived(
+		roles.length > 0 ? roles.map((r) => r.name) : fallbackRoles,
+	);
 
 	const roleFilterOptions = $derived([
 		{ value: "all", label: t("user.manage.filterRole") },
@@ -237,11 +128,188 @@
 		return 0;
 	}
 
+	function mapBackendUserToRecord(u: BackendUser): UserRecord {
+		const d = new Date(u.createdAt);
+		const day = String(d.getDate()).padStart(2, "0");
+		const month = String(d.getMonth() + 1).padStart(2, "0");
+		const year = d.getFullYear();
+		const formattedDate = `${day}/${month}/${year}`;
+
+		const roleName = u.roleDetails?.name || u.role;
+		const status: UserStatus = u.status === "ACTIVE" ? "active" : "disable";
+
+		return {
+			id: u.id,
+			name: u.fullName || u.username,
+			email: u.email,
+			role: roleName,
+			status,
+			createdAt: formattedDate,
+			phone: u.phoneNumber || undefined,
+		};
+	}
+
+	// Fetch dynamic roles from backend
+	async function loadRoles() {
+		isRolesLoading = true;
+		try {
+			const res = await fetch("/api/v1/roles");
+			if (res.ok) {
+				const json = (await res
+					.json()
+					.catch(() => null)) as ApiResponse<RoleDetailData[]> | null;
+				if (json && isApiSuccess(json) && Array.isArray(json.data)) {
+					roles = json.data.map((r) => ({
+						id: r.id,
+						name: r.name,
+						key: r.key,
+					}));
+					if (roles.length > 0 && !formRole) {
+						formRole = roles[0].name;
+					}
+				}
+			}
+		} catch (err: unknown) {
+			console.warn(
+				"Could not load backend roles:",
+				extractUnknownErrorMessage(err),
+			);
+		} finally {
+			isRolesLoading = false;
+		}
+	}
+
+	// Fetch user list from backend
+	async function loadUsers() {
+		isLoadingUsers = true;
+		try {
+			const params = new URLSearchParams();
+			params.set("page", currentPage.toString());
+			params.set("limit", pageSize.toString());
+			if (searchQuery.trim()) {
+				params.set("search", searchQuery.trim());
+			}
+			if (selectedRole !== "all") {
+				params.set("role", selectedRole);
+			}
+			if (sortKey === "name") {
+				params.set("sortBy", "fullName");
+				if (sortDirection !== "none") {
+					params.set("sortOrder", sortDirection);
+				}
+			} else if (sortKey === "createdAt") {
+				params.set("sortBy", "createdAt");
+				if (sortDirection !== "none") {
+					params.set("sortOrder", sortDirection);
+				}
+			}
+
+			const res = await fetch(`/api/v1/users?${params.toString()}`);
+			if (res.ok) {
+				const json = (await res
+					.json()
+					.catch(
+						() => null,
+					)) as ApiResponse<UserListResponseData> | null;
+				if (json && isApiSuccess(json) && json.data) {
+					users = json.data.items.map(mapBackendUserToRecord);
+					totalUsersCount = json.data.pagination.total;
+					return;
+				}
+			}
+			const json = (await res.json().catch(() => null)) as unknown;
+			const errMsg = extractApiErrorMessage(
+				json,
+				"Gagal memuat daftar pengguna.",
+			);
+			console.warn("loadUsers warning:", errMsg);
+		} catch (err: unknown) {
+			console.warn(
+				"Could not reach backend users API:",
+				extractUnknownErrorMessage(err),
+			);
+		} finally {
+			isLoadingUsers = false;
+		}
+	}
+
+	let isMounted = false;
+	let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+	let lastSearch = "";
+	let lastRole = "all";
+	let lastPage = 1;
+	let lastPageSize = 10;
+	let lastSortKey: string | null = null;
+	let lastSortDirection: "asc" | "desc" | "none" = "none";
+
 	$effect(() => {
-		searchQuery;
-		selectedRole;
-		currentPage = 1;
-		selectedIds = [];
+		// Explicitly read all reactive dependencies so Svelte 5 tracks them
+		const q = searchQuery;
+		const r = selectedRole;
+		const p = currentPage;
+		const s = pageSize;
+		const sk = sortKey;
+		const sd = sortDirection;
+
+		// Skip initial mount execution to avoid duplicate loadUsers calls
+		if (!isMounted) {
+			return;
+		}
+
+		// 1. Debounce if search query changed
+		if (q !== lastSearch) {
+			lastSearch = q;
+			if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+			searchDebounceTimer = setTimeout(() => {
+				currentPage = 1;
+				selectedIds = [];
+				loadUsers();
+			}, 300);
+			return;
+		}
+
+		// 2. If role, pageSize, or sorting changed -> reset to page 1 and reload
+		if (
+			r !== lastRole ||
+			s !== lastPageSize ||
+			sk !== lastSortKey ||
+			sd !== lastSortDirection
+		) {
+			lastRole = r;
+			lastPageSize = s;
+			lastSortKey = sk;
+			lastSortDirection = sd;
+			if (currentPage !== 1) {
+				currentPage = 1;
+				return;
+			}
+			selectedIds = [];
+			loadUsers();
+			return;
+		}
+
+		// 3. If page changed -> reload the new page
+		if (p !== lastPage) {
+			lastPage = p;
+			selectedIds = [];
+			loadUsers();
+			return;
+		}
+	});
+
+	onMount(async () => {
+		loadRoles();
+		try {
+			await loadUsers();
+		} finally {
+			isMounted = true;
+			lastSearch = searchQuery;
+			lastRole = selectedRole;
+			lastPage = currentPage;
+			lastPageSize = pageSize;
+			lastSortKey = sortKey;
+			lastSortDirection = sortDirection;
+		}
 	});
 
 	// Table Columns configuration (Sorting on Name and CreatedAt)
@@ -276,15 +344,15 @@
 		},
 	]);
 
-	// Filtered users based on search name and role filter
+	// Instantaneous filtered users for instant UI feedback
 	const filteredUsers = $derived.by(() => {
 		const q = searchQuery.trim().toLowerCase();
 
 		return users.filter((item) => {
-			// Search strictly by name
-			const matchName = !q || item.name.toLowerCase().includes(q);
-
-			// Filter by role
+			const matchName =
+				!q ||
+				item.name.toLowerCase().includes(q) ||
+				item.email.toLowerCase().includes(q);
 			const matchRole =
 				selectedRole === "all" ||
 				item.role.toLowerCase() === selectedRole.toLowerCase();
@@ -302,18 +370,62 @@
 	}
 
 	// Status Toggle
-	function toggleUserStatus(userId: string, active: boolean) {
-		const newStatus: UserStatus = active ? "active" : "disable";
+	async function toggleUserStatus(userId: string, active: boolean) {
+		const originalUser = users.find((u) => u.id === userId);
+		const targetStatus: BackendUserStatus = active ? "ACTIVE" : "INACTIVE";
+		const nextUiStatus: UserStatus = active ? "active" : "disable";
+
+		// Optimistic update
 		users = users.map((u) =>
-			u.id === userId ? { ...u, status: newStatus } : u,
+			u.id === userId ? { ...u, status: nextUiStatus } : u,
 		);
-		const user = users.find((u) => u.id === userId);
-		const statusLabel = active
-			? t("user.manage.statusActive")
-			: t("user.manage.statusDisable");
-		showToast(
-			`${user?.name ?? "User"} ${t("user.manage.statusChangedTo")} ${statusLabel}`,
-		);
+
+		try {
+			const res = await fetch(`/api/v1/users/${userId}/status`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ status: targetStatus }),
+			});
+
+			const json = (await res
+				.json()
+				.catch(() => null)) as ApiResponse<BackendUser> | null;
+
+			if (!res.ok || !json || !isApiSuccess(json)) {
+				// Revert optimistic update
+				if (originalUser) {
+					users = users.map((u) =>
+						u.id === userId
+							? { ...u, status: originalUser.status }
+							: u,
+					);
+				}
+				const errMsg = extractApiErrorMessage(
+					json,
+					"Gagal mengubah status pengguna.",
+				);
+				showToast(errMsg);
+				return;
+			}
+
+			const statusLabel = active
+				? t("user.manage.statusActive")
+				: t("user.manage.statusDisable");
+			showToast(
+				`${originalUser?.name ?? "User"} ${t("user.manage.statusChangedTo")} ${statusLabel}`,
+			);
+		} catch (err: unknown) {
+			if (originalUser) {
+				users = users.map((u) =>
+					u.id === userId ? { ...u, status: originalUser.status } : u,
+				);
+			}
+			const errMsg = extractUnknownErrorMessage(
+				err,
+				"Terjadi kesalahan saat mengubah status.",
+			);
+			showToast(errMsg);
+		}
 	}
 
 	// Actions Modals Handlers
@@ -325,38 +437,60 @@
 	function openCreate() {
 		formName = "";
 		formEmail = "";
-		formRole = "Admin";
+		formRole = roleOptions[0] || "Admin";
 		formStatus = "active";
 		formPhone = "";
-		formPassword = "";
+		formPassword = generateRandomPassword();
 		isCreateModalOpen = true;
 	}
 
-	function handleSaveCreate() {
+	async function handleSaveCreate() {
 		if (!formName.trim() || !formEmail.trim()) {
 			showToast("Nama dan email wajib diisi.");
 			return;
 		}
 
-		const today = new Date();
-		const day = String(today.getDate()).padStart(2, "0");
-		const month = String(today.getMonth() + 1).padStart(2, "0");
-		const year = today.getFullYear();
-		const formattedDate = `${day}/${month}/${year}`;
+		const passwordToUse = formPassword.trim() || generateRandomPassword();
 
-		const newUser: UserRecord = {
-			id: `usr-${Date.now()}`,
-			name: formName.trim(),
-			email: formEmail.trim().toLowerCase(),
-			role: formRole,
-			status: formStatus,
-			createdAt: formattedDate,
-			phone: formPhone.trim() || "+62 812-0000-0000",
-		};
+		try {
+			const payload: CreateUserRequestPayload = {
+				fullName: formName.trim(),
+				email: formEmail.trim().toLowerCase(),
+				role: formRole,
+				status: formStatus === "active" ? "ACTIVE" : "INACTIVE",
+				phoneNumber: formPhone.trim() || undefined,
+				password: passwordToUse,
+			};
 
-		users = [newUser, ...users];
-		isCreateModalOpen = false;
-		showToast(`${newUser.name} berhasil ditambahkan.`);
+			const res = await fetch("/api/v1/users", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload),
+			});
+
+			const json = (await res
+				.json()
+				.catch(() => null)) as ApiResponse<BackendUser> | null;
+
+			if (!res.ok || !json || !isApiSuccess(json)) {
+				const errMsg = extractApiErrorMessage(
+					json,
+					"Gagal menambahkan pengguna.",
+				);
+				showToast(errMsg);
+				return;
+			}
+
+			isCreateModalOpen = false;
+			showToast(json.message || `${formName} berhasil ditambahkan.`);
+			await loadUsers();
+		} catch (err: unknown) {
+			const errMsg = extractUnknownErrorMessage(
+				err,
+				"Terjadi kesalahan saat menambahkan pengguna.",
+			);
+			showToast(errMsg);
+		}
 	}
 
 	function openEdit(user: UserRecord) {
@@ -369,28 +503,51 @@
 		isEditModalOpen = true;
 	}
 
-	function handleSaveEdit() {
+	async function handleSaveEdit() {
 		if (!selectedUser) return;
 		if (!formName.trim() || !formEmail.trim()) {
 			showToast("Nama dan email wajib diisi.");
 			return;
 		}
 
-		users = users.map((u) =>
-			u.id === selectedUser?.id
-				? {
-						...u,
-						name: formName.trim(),
-						email: formEmail.trim().toLowerCase(),
-						role: formRole,
-						status: formStatus,
-						phone: formPhone.trim(),
-					}
-				: u,
-		);
+		try {
+			const payload: UpdateUserRequestPayload = {
+				fullName: formName.trim(),
+				email: formEmail.trim().toLowerCase(),
+				role: formRole,
+				status: formStatus === "active" ? "ACTIVE" : "INACTIVE",
+				phoneNumber: formPhone.trim() || undefined,
+			};
 
-		isEditModalOpen = false;
-		showToast(`Data ${formName} berhasil diperbarui.`);
+			const res = await fetch(`/api/v1/users/${selectedUser.id}`, {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload),
+			});
+
+			const json = (await res
+				.json()
+				.catch(() => null)) as ApiResponse<BackendUser> | null;
+
+			if (!res.ok || !json || !isApiSuccess(json)) {
+				const errMsg = extractApiErrorMessage(
+					json,
+					"Gagal memperbarui pengguna.",
+				);
+				showToast(errMsg);
+				return;
+			}
+
+			isEditModalOpen = false;
+			showToast(json.message || `Data ${formName} berhasil diperbarui.`);
+			await loadUsers();
+		} catch (err: unknown) {
+			const errMsg = extractUnknownErrorMessage(
+				err,
+				"Terjadi kesalahan saat memperbarui pengguna.",
+			);
+			showToast(errMsg);
+		}
 	}
 
 	function openResetPassword(user: UserRecord) {
@@ -421,11 +578,49 @@
 		}
 	}
 
-	function handleSaveResetPassword() {
-		isResetPasswordModalOpen = false;
-		showToast(
-			`Password untuk ${selectedUser?.name} berhasil diatur ulang.`,
-		);
+	async function handleSaveResetPassword() {
+		if (!selectedUser) return;
+		if (!newGeneratedPassword || newGeneratedPassword.length < 6) {
+			showToast("Password minimal 6 karakter.");
+			return;
+		}
+
+		try {
+			const res = await fetch(
+				`/api/v1/users/${selectedUser.id}/reset-password`,
+				{
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ password: newGeneratedPassword }),
+				},
+			);
+
+			const json = (await res.json().catch(() => null)) as ApiResponse<{
+				success: boolean;
+				message: string;
+			}> | null;
+
+			if (!res.ok || !json || !isApiSuccess(json)) {
+				const errMsg = extractApiErrorMessage(
+					json,
+					"Gagal mengatur ulang password.",
+				);
+				showToast(errMsg);
+				return;
+			}
+
+			isResetPasswordModalOpen = false;
+			showToast(
+				json.message ||
+					`Password untuk ${selectedUser.name} berhasil diatur ulang.`,
+			);
+		} catch (err: unknown) {
+			const errMsg = extractUnknownErrorMessage(
+				err,
+				"Terjadi kesalahan saat mengatur ulang password.",
+			);
+			showToast(errMsg);
+		}
 	}
 
 	function handleOpenDelete(user: UserRecord) {
@@ -433,13 +628,45 @@
 		isDeleteModalOpen = true;
 	}
 
-	function handleConfirmDelete() {
+	async function handleConfirmDelete() {
 		if (!userToDelete) return;
-		users = users.filter((u) => u.id !== userToDelete?.id);
-		selectedIds = selectedIds.filter((id) => id !== userToDelete?.id);
-		showToast(`Pengguna ${userToDelete.name} berhasil dihapus.`);
-		isDeleteModalOpen = false;
-		userToDelete = null;
+		const targetId = userToDelete.id;
+		const targetName = userToDelete.name;
+
+		try {
+			const res = await fetch(`/api/v1/users/${targetId}`, {
+				method: "DELETE",
+			});
+
+			const json = (await res.json().catch(() => null)) as ApiResponse<{
+				success: boolean;
+				message: string;
+			}> | null;
+
+			if (!res.ok || !json || !isApiSuccess(json)) {
+				const errMsg = extractApiErrorMessage(
+					json,
+					"Gagal menghapus pengguna.",
+				);
+				showToast(errMsg);
+				return;
+			}
+
+			users = users.filter((u) => u.id !== targetId);
+			selectedIds = selectedIds.filter((id) => id !== targetId);
+			isDeleteModalOpen = false;
+			userToDelete = null;
+			showToast(
+				json.message || `Pengguna ${targetName} berhasil dihapus.`,
+			);
+			await loadUsers();
+		} catch (err: unknown) {
+			const errMsg = extractUnknownErrorMessage(
+				err,
+				"Terjadi kesalahan saat menghapus pengguna.",
+			);
+			showToast(errMsg);
+		}
 	}
 
 	function handleOpenBulkDelete(ids?: (string | number)[]) {
@@ -448,12 +675,42 @@
 		isBulkDeleteModalOpen = true;
 	}
 
-	function handleConfirmBulkDelete() {
+	async function handleConfirmBulkDelete() {
+		if (selectedIds.length === 0) return;
 		const count = selectedIds.length;
-		users = users.filter((u) => !selectedIds.includes(u.id));
-		selectedIds = [];
-		isBulkDeleteModalOpen = false;
-		showToast(`${count} pengguna terpilih berhasil dihapus.`);
+
+		try {
+			const res = await fetch("/api/v1/users/bulk-delete", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ ids: selectedIds.map(String) }),
+			});
+
+			const json = (await res.json().catch(() => null)) as ApiResponse<{
+				deletedCount: number;
+			}> | null;
+
+			if (!res.ok || !json || !isApiSuccess(json)) {
+				const errMsg = extractApiErrorMessage(
+					json,
+					"Gagal menghapus pengguna terpilih.",
+				);
+				showToast(errMsg);
+				return;
+			}
+
+			const deletedCount = json.data?.deletedCount ?? count;
+			selectedIds = [];
+			isBulkDeleteModalOpen = false;
+			showToast(`${deletedCount} pengguna berhasil dihapus.`);
+			await loadUsers();
+		} catch (err: unknown) {
+			const errMsg = extractUnknownErrorMessage(
+				err,
+				"Terjadi kesalahan saat menghapus pengguna terpilih.",
+			);
+			showToast(errMsg);
+		}
 	}
 </script>
 
@@ -582,6 +839,9 @@
 	<DataTable
 		data={filteredUsers}
 		{columns}
+		totalCount={totalUsersCount}
+		manualPagination={true}
+		loading={isLoadingUsers}
 		bind:page={currentPage}
 		bind:perPage={pageSize}
 		perPageOptions={[10, 20, 50, 100]}
@@ -612,7 +872,7 @@
 					{/if}
 				</div>
 			{:else if column.id === "email"}
-				<span class="font-mono text-xs text-muted-foreground">
+				<span class="text-xs font-semibold text-foreground">
 					{item.email}
 				</span>
 			{:else if column.id === "role"}
@@ -845,6 +1105,28 @@
 					bind:value={formPhone}
 					placeholder="+62 812-xxxx-xxxx"
 					class="h-9 text-xs bg-white dark:bg-card"
+				/>
+			</div>
+
+			<div class="space-y-1">
+				<div class="flex items-center justify-between">
+					<Label class="text-xs font-semibold text-foreground"
+						>Password *</Label
+					>
+					<button
+						type="button"
+						onclick={() =>
+							(formPassword = generateRandomPassword())}
+						class="text-[11px] font-medium text-primary hover:underline cursor-pointer"
+					>
+						Generate Password
+					</button>
+				</div>
+				<Input
+					type="text"
+					bind:value={formPassword}
+					placeholder="Minimal 6 karakter"
+					class="h-9 text-xs font-mono bg-white dark:bg-card"
 				/>
 			</div>
 

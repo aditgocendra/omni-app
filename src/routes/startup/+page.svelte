@@ -5,11 +5,10 @@
 	import { Label } from "$lib/components/ui/label/index.js";
 	import { Checkbox } from "$lib/components/ui/checkbox/index.js";
 	import { Badge } from "$lib/components/ui/badge/index.js";
-	import LanguageSwitcher from "$lib/components/layout/LanguageSwitcher.svelte";
-	import ThemeToggle from "$lib/components/layout/ThemeToggle.svelte";
 	import { authStore } from "$lib/stores/auth.svelte.js";
+	import { extractUnknownErrorMessage } from "$lib/types/api.js";
 	import { t } from "$lib/i18n/index.js";
-	import { goto } from "$app/navigation";
+	import { goto, invalidateAll } from "$app/navigation";
 
 	// Icons
 	import GalleryVerticalEndIcon from "@lucide/svelte/icons/gallery-vertical-end";
@@ -23,12 +22,12 @@
 	import AlertCircleIcon from "@lucide/svelte/icons/alert-circle";
 	import ArrowRightIcon from "@lucide/svelte/icons/arrow-right";
 	import Loader2Icon from "@lucide/svelte/icons/loader-2";
-	import ShieldCheckIcon from "@lucide/svelte/icons/shield-check";
 	import SparklesIcon from "@lucide/svelte/icons/sparkles";
+	import AtSignIcon from "@lucide/svelte/icons/at-sign";
 
 	// Form State
-	let storeName = $state("");
 	let fullName = $state("");
+	let username = $state("");
 	let email = $state("");
 	let phone = $state("");
 	let password = $state("");
@@ -60,13 +59,21 @@
 
 		// Validations
 		if (
-			!storeName.trim() ||
 			!fullName.trim() ||
+			!username.trim() ||
 			!email.trim() ||
 			!phone.trim() ||
 			!password
 		) {
 			errorMessage = t("auth.startup.errRequired");
+			return;
+		}
+
+		if (
+			username.trim().length < 3 ||
+			!/^[a-zA-Z0-9_]+$/.test(username.trim())
+		) {
+			errorMessage = t("auth.startup.errUsername");
 			return;
 		}
 
@@ -92,30 +99,33 @@
 
 		isLoading = true;
 
-		// Simulate setup processing
-		setTimeout(() => {
-			try {
-				authStore.setupSuperAdmin({
-					storeName: storeName.trim(),
-					fullName: fullName.trim(),
-					email: email.trim(),
-					phone: phone.trim(),
-					password,
-				});
+		try {
+			const res = await authStore.registerSuperAdmin({
+				fullName: fullName.trim(),
+				username: username.trim(),
+				email: email.trim(),
+				phone: phone.trim(),
+				password,
+			});
 
-				isLoading = false;
+			isLoading = false;
+
+			if (res.success) {
 				successMessage = t("auth.startup.successDesc");
-
-				// Redirect to dashboard overview after brief success display
-				setTimeout(() => {
-					goto("/");
-				}, 1500);
-			} catch {
-				isLoading = false;
+				await invalidateAll();
+				await goto("/");
+			} else {
 				errorMessage =
+					res.message ||
 					"An unexpected error occurred during initialization.";
 			}
-		}, 800);
+		} catch (err: unknown) {
+			isLoading = false;
+			errorMessage = extractUnknownErrorMessage(
+				err,
+				"An unexpected error occurred during initialization."
+			);
+		}
 	}
 </script>
 
@@ -203,29 +213,56 @@
 					<Card.Content class="p-6 sm:p-8 space-y-6">
 						<!-- Section 1: Super Admin Account Information -->
 						<div class="space-y-4 pt-2">
-							<!-- Full Name -->
-							<div class="space-y-1.5">
-								<Label
-									for="fullName"
-									class="text-xs font-semibold text-foreground"
-								>
-									{t("auth.startup.fullNameLabel")}
-									<span class="text-destructive">*</span>
-								</Label>
-								<div class="relative">
-									<UserIcon
-										class="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none"
-									/>
-									<Input
-										id="fullName"
-										type="text"
-										required
-										bind:value={fullName}
-										placeholder={t(
-											"auth.startup.fullNamePlaceholder",
-										)}
-										class="h-10 pl-10 rounded-lg border-border bg-slate-50/50 dark:bg-muted/40 text-xs sm:text-sm"
-									/>
+							<!-- Full Name and Username Grid -->
+							<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+								<div class="space-y-1.5">
+									<Label
+										for="fullName"
+										class="text-xs font-semibold text-foreground"
+									>
+										{t("auth.startup.fullNameLabel")}
+										<span class="text-destructive">*</span>
+									</Label>
+									<div class="relative">
+										<UserIcon
+											class="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none"
+										/>
+										<Input
+											id="fullName"
+											type="text"
+											required
+											bind:value={fullName}
+											placeholder={t(
+												"auth.startup.fullNamePlaceholder",
+											)}
+											class="h-10 pl-10 rounded-lg border-border bg-slate-50/50 dark:bg-muted/40 text-xs sm:text-sm"
+										/>
+									</div>
+								</div>
+
+								<div class="space-y-1.5">
+									<Label
+										for="username"
+										class="text-xs font-semibold text-foreground"
+									>
+										{t("auth.startup.usernameLabel")}
+										<span class="text-destructive">*</span>
+									</Label>
+									<div class="relative">
+										<AtSignIcon
+											class="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none"
+										/>
+										<Input
+											id="username"
+											type="text"
+											required
+											bind:value={username}
+											placeholder={t(
+												"auth.startup.usernamePlaceholder",
+											)}
+											class="h-10 pl-10 rounded-lg border-border bg-slate-50/50 dark:bg-muted/40 text-xs sm:text-sm"
+										/>
+									</div>
 								</div>
 							</div>
 

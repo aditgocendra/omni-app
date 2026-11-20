@@ -1,6 +1,17 @@
-import type { UserRecord } from "$lib/types/index.js";
+import {
+	type BackendUser,
+	type StartupStatusData,
+	type LoginResponseData,
+	type RegisterRequestPayload,
+	type LoginRequestPayload,
+	type ApiResponse,
+	isApiSuccess,
+	extractApiErrorMessage,
+	extractUnknownErrorMessage,
+} from "$lib/types/api.js";
 
 const isBrowser = typeof window !== "undefined";
+const API_BASE = "/api/v1";
 
 export interface AuthUser {
 	id: string;
@@ -9,82 +20,48 @@ export interface AuthUser {
 	role: string;
 	avatar?: string;
 	phone?: string;
-	storeName?: string;
 }
 
 export interface SuperAdminSetupData {
-	storeName: string;
 	fullName: string;
+	username: string;
 	email: string;
 	phone: string;
 	password: string;
 }
 
-export const DEMO_ACCOUNTS: Record<string, { user: AuthUser; password: string }> = {
-	superAdmin: {
-		user: {
-			id: "usr-admin-1",
-			name: "Adit Gocendra",
-			email: "admin@cronsyst.com",
-			role: "Super Admin",
-			phone: "+62 812-3456-7890",
-			storeName: "Cronsyst Omnichannel ID",
-			avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
-		},
-		password: "password123",
-	},
-	warehouseManager: {
-		user: {
-			id: "usr-wh-1",
-			name: "Budi Santoso",
-			email: "budi.santoso@cronsyst.com",
-			role: "Warehouse Manager",
-			phone: "+62 813-8899-5678",
-			storeName: "Cronsyst Omnichannel ID",
-			avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
-		},
-		password: "password123",
-	},
-	cashier: {
-		user: {
-			id: "usr-cashier-1",
-			name: "Rina Wijaya",
-			email: "rina.cashier@cronsyst.com",
-			role: "Cashier",
-			phone: "+62 815-1234-9988",
-			storeName: "Cronsyst Omnichannel ID",
-			avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80",
-		},
-		password: "password123",
-	},
-};
+export type StartupStatus = StartupStatusData;
+
+export interface RegisterResult {
+	success: boolean;
+	message?: string;
+	data?: BackendUser;
+}
+
+export interface LoginResult {
+	success: boolean;
+	user?: AuthUser;
+	message?: string;
+}
 
 class AuthStore {
 	#isInitialized = $state<boolean>(false);
+	#isStartupChecked = $state<boolean>(false);
+	#isSetupRequired = $state<boolean>(false);
 	#currentUser = $state<AuthUser | null>(null);
-	#superAdmin = $state<SuperAdminSetupData | null>(null);
 
 	constructor() {
 		if (isBrowser) {
-			const initSaved = localStorage.getItem("cronsyst_is_initialized");
-			this.#isInitialized = initSaved === "true";
-
-			const adminSaved = localStorage.getItem("cronsyst_super_admin");
-			if (adminSaved) {
-				try {
-					this.#superAdmin = JSON.parse(adminSaved);
-				} catch {
-					this.#superAdmin = null;
-				}
-			}
-
-			const userSaved = localStorage.getItem("cronsyst_auth_user");
-			if (userSaved) {
-				try {
-					this.#currentUser = JSON.parse(userSaved);
-				} catch {
-					this.#currentUser = null;
-				}
+			// Security & Privacy Cleanup:
+			// Remove any legacy sensitive tokens and user identity from localStorage.
+			// Authentication state is strictly managed in-memory and via HttpOnly Cookies.
+			try {
+				localStorage.removeItem("cronsyst_access_token");
+				localStorage.removeItem("cronsyst_auth_user");
+				localStorage.removeItem("cronsyst_super_admin");
+				localStorage.removeItem("cronsyst_is_initialized");
+			} catch {
+				// Ignore if storage access is restricted
 			}
 		}
 	}
@@ -93,114 +70,187 @@ class AuthStore {
 		return this.#isInitialized;
 	}
 
+	get isStartupChecked(): boolean {
+		return this.#isStartupChecked;
+	}
+
+	get isSetupRequired(): boolean {
+		return this.#isSetupRequired;
+	}
+
 	get currentUser(): AuthUser | null {
 		return this.#currentUser;
 	}
 
-	get superAdmin(): SuperAdminSetupData | null {
-		return this.#superAdmin;
+	setSetupRequired(val: boolean): void {
+		this.#isSetupRequired = val;
+		this.#isInitialized = !val;
+		this.#isStartupChecked = true;
+		if (val) {
+			this.#currentUser = null;
+		}
 	}
 
-	setupSuperAdmin(data: SuperAdminSetupData): AuthUser {
-		const newAdminUser: AuthUser = {
-			id: "usr-super-admin",
-			name: data.fullName,
-			email: data.email,
-			role: "Super Admin",
-			phone: data.phone,
-			storeName: data.storeName,
-			avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+	setCurrentUser(user: AuthUser | null): void {
+		this.#currentUser = user;
+		if (user) {
+			this.#isInitialized = true;
+			this.#isSetupRequired = false;
+			this.#isStartupChecked = true;
+		}
+	}
+
+	/**
+	 * Check with backend whether startup is required (database has 0 users)
+	 */
+	async checkStartupStatus(): Promise<StartupStatus> {
+		try {
+			const res = await fetch(`${API_BASE}/auth/startup-status`);
+			if (res.ok) {
+				const json = (await res.json().catch(() => null)) as ApiResponse<StartupStatusData> | null;
+				if (json && isApiSuccess(json)) {
+					const status: StartupStatus = json.data;
+					this.#isSetupRequired = status.isSetupRequired;
+					this.#isInitialized = !status.isSetupRequired;
+					this.#isStartupChecked = true;
+					return status;
+				}
+			}
+		} catch (err: unknown) {
+			console.warn("Could not reach backend startup-status API, falling back to local state:", extractUnknownErrorMessage(err));
+		}
+
+		// Fallback to local state if backend is offline
+		const fallbackStatus: StartupStatus = {
+			isSetupRequired: !this.#isInitialized,
+			hasSuperAdmin: this.#isInitialized,
+			userCount: this.#isInitialized ? 1 : 0,
+		};
+		this.#isSetupRequired = fallbackStatus.isSetupRequired;
+		this.#isStartupChecked = true;
+		return fallbackStatus;
+	}
+
+	/**
+	 * Register Super Admin on backend b-app with role: SUPER_ADMIN
+	 */
+	async registerSuperAdmin(data: SuperAdminSetupData): Promise<RegisterResult> {
+		const payload: RegisterRequestPayload = {
+			email: data.email.trim(),
+			username: data.username.trim(),
+			fullName: data.fullName.trim() || undefined,
+			password: data.password,
+			phoneNumber: data.phone.trim() || undefined,
+			role: "SUPER_ADMIN",
 		};
 
-		this.#superAdmin = data;
-		this.#isInitialized = true;
-		this.#currentUser = newAdminUser;
+		try {
+			const res = await fetch(`${API_BASE}/auth/register`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(payload),
+			});
 
-		if (isBrowser) {
-			localStorage.setItem("cronsyst_is_initialized", "true");
-			localStorage.setItem("cronsyst_super_admin", JSON.stringify(data));
-			localStorage.setItem("cronsyst_auth_user", JSON.stringify(newAdminUser));
+			const json = (await res.json().catch(() => null)) as ApiResponse<BackendUser> | null;
+
+			if (!res.ok || !json || !isApiSuccess(json)) {
+				const message = extractApiErrorMessage(json, "Failed to register Super Admin on backend.");
+				return {
+					success: false,
+					message,
+				};
+			}
+
+			// Mark setup as completed
+			this.setSetupRequired(false);
+
+			// Automatically login
+			await this.login(data.email, data.password);
+
+			return {
+				success: true,
+				data: json.data,
+			};
+		} catch (err: unknown) {
+			const message = extractUnknownErrorMessage(err, "An unexpected error occurred during initialization.");
+			console.error("Backend registration error:", message);
+			return {
+				success: false,
+				message,
+			};
 		}
-
-		return newAdminUser;
 	}
 
-	login(email: string, pass: string): { success: boolean; user?: AuthUser; message?: string } {
-		const cleanEmail = email.trim().toLowerCase();
+	/**
+	 * Authenticate user via backend login endpoint
+	 */
+	async login(email: string, pass: string): Promise<LoginResult> {
+		const payload: LoginRequestPayload = {
+			email: email.trim().toLowerCase(),
+			password: pass,
+		};
 
-		// Check if matches created Super Admin
-		if (this.#superAdmin && this.#superAdmin.email.toLowerCase() === cleanEmail) {
-			if (this.#superAdmin.password === pass) {
+		try {
+			const res = await fetch(`${API_BASE}/auth/login`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(payload),
+			});
+
+			const json = (await res.json().catch(() => null)) as ApiResponse<LoginResponseData> | null;
+
+			if (res.ok && json && isApiSuccess(json)) {
+				const backendUser = json.data.user;
 				const user: AuthUser = {
-					id: "usr-super-admin",
-					name: this.#superAdmin.fullName,
-					email: this.#superAdmin.email,
-					role: "Super Admin",
-					phone: this.#superAdmin.phone,
-					storeName: this.#superAdmin.storeName,
+					id: backendUser.id,
+					name: backendUser.fullName || backendUser.username,
+					email: backendUser.email,
+					role: backendUser.role === "SUPER_ADMIN" ? "Super Admin" : backendUser.role,
+					phone: backendUser.phoneNumber || undefined,
 					avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
 				};
+
 				this.#currentUser = user;
-				if (isBrowser) {
-					localStorage.setItem("cronsyst_auth_user", JSON.stringify(user));
-				}
 				return { success: true, user };
 			}
-			return { success: false, message: "Incorrect password." };
-		}
 
-		// Check demo accounts
-		for (const key of Object.keys(DEMO_ACCOUNTS)) {
-			const item = DEMO_ACCOUNTS[key];
-			if (item.user.email.toLowerCase() === cleanEmail) {
-				if (item.password === pass) {
-					this.#currentUser = item.user;
-					if (isBrowser) {
-						localStorage.setItem("cronsyst_auth_user", JSON.stringify(item.user));
-					}
-					return { success: true, user: item.user };
-				}
-				return { success: false, message: "Incorrect password." };
-			}
-		}
-
-		// Fallback for any password123 with a standard email format to assist preview
-		if (pass === "password123" && cleanEmail.includes("@")) {
-			const fallbackUser: AuthUser = {
-				id: `usr-${Date.now()}`,
-				name: cleanEmail.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-				email: cleanEmail,
-				role: "Super Admin",
-				storeName: "Cronsyst Retail Store",
-				avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+			const message = extractApiErrorMessage(json, "Invalid email or password.");
+			return {
+				success: false,
+				message,
 			};
-			this.#currentUser = fallbackUser;
-			if (isBrowser) {
-				localStorage.setItem("cronsyst_auth_user", JSON.stringify(fallbackUser));
-			}
-			return { success: true, user: fallbackUser };
+		} catch (err: unknown) {
+			const message = extractUnknownErrorMessage(err, "Unable to connect to authentication server. Please try again later.");
+			console.error("Backend login error:", message);
+			return {
+				success: false,
+				message: "Unable to connect to authentication server. Please try again later.",
+			};
 		}
-
-		return { success: false, message: "User not found or invalid credentials." };
 	}
 
-	quickDemoLogin(roleKey: "superAdmin" | "warehouseManager" | "cashier"): AuthUser {
-		const target = DEMO_ACCOUNTS[roleKey] || DEMO_ACCOUNTS.superAdmin;
-		this.#currentUser = target.user;
-		if (isBrowser) {
-			localStorage.setItem("cronsyst_is_initialized", "true");
-			localStorage.setItem("cronsyst_auth_user", JSON.stringify(target.user));
-		}
-		return target.user;
-	}
-
-	logout() {
+	async logout(): Promise<void> {
 		this.#currentUser = null;
 		if (isBrowser) {
-			localStorage.removeItem("cronsyst_auth_user");
+			try {
+				localStorage.removeItem("cronsyst_auth_user");
+				localStorage.removeItem("cronsyst_access_token");
+				localStorage.removeItem("cronsyst_super_admin");
+				localStorage.removeItem("cronsyst_is_initialized");
+			} catch {
+				// Ignore
+			}
+			try {
+				await fetch(`${API_BASE}/auth/logout`, { method: "POST" });
+			} catch {
+				// Ignore if offline
+			}
 		}
 	}
 }
 
 export const authStore = new AuthStore();
-

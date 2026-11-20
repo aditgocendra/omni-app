@@ -11,7 +11,7 @@
 	import SparklesIcon from "@lucide/svelte/icons/sparkles";
 	import { t } from "$lib/i18n/index.js";
 	import { authStore } from "$lib/stores/auth.svelte.js";
-	import { goto } from "$app/navigation";
+	import { goto, invalidateAll } from "$app/navigation";
 
 	let { user }: { user: { name: string; email: string; avatar: string } } =
 		$props();
@@ -87,9 +87,10 @@
 				<DropdownMenu.Separator />
 				<DropdownMenu.Item
 					class="gap-2 cursor-pointer text-destructive focus:text-destructive"
-					onSelect={() => {
-						authStore.logout();
-						goto("/sign-in");
+					onSelect={async () => {
+						await authStore.logout();
+						await invalidateAll();
+						await goto("/sign-in");
 					}}
 				>
 					<LogOutIcon class="size-4" />
